@@ -20,9 +20,13 @@ set(PROJECT_SOURCES
 )
 
 if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
+    find_package(Qt6 REQUIRED COMPONENTS Core)
+
     qt_add_executable(FlightScope
         MANUAL_FINALIZATION
         ${PROJECT_SOURCES}
+        LinkInterface.h
+        mavlinkrouter.h mavlinkrouter.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET FlightScope APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR
@@ -43,6 +47,7 @@ else()
 endif()
 
 target_link_libraries(FlightScope PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(FlightScope PRIVATE Qt6::Core)
 
 # Qt for iOS sets MACOSX_BUNDLE_GUI_IDENTIFIER automatically since Qt 6.1.
 # If you are developing for iOS or macOS you should consider setting an
@@ -72,3 +77,4 @@ add_subdirectory(tst_smoketest)
 target_include_directories(FlightScope PRIVATE
     "${CMAKE_CURRENT_SOURCE_DIR}/third-party"
 )
+target_compile_definitions(FlightScope PRIVATE MAVLINK_DIALECT=common)
