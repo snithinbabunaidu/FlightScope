@@ -1,9 +1,13 @@
 #include "mainwindow.h"
-#include "mavlinkrouter.h"
 #include "ui_mainwindow.h"
+#include "mavlinkrouter.h"
+#include "vehiclemodel.h"
+#include "healthmodel.h"
 #include <mavlink/common/mavlink.h>
 #include <QDebug>
 #include <QUdpSocket>
+#include <QNetworkDatagram>
+#include <QTimer>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -11,30 +15,32 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-           // 1. Initialize the MavlinkRouter
     m_mavlinkRouter = new MavlinkRouter(this);
-
-           // 2. Initialize the UDP Socket
+    m_vehicleModel = new VehicleModel(this);
+    m_healthModel = new HealthModel(this);
     m_udpSocket = new QUdpSocket(this);
-    m_udpSocket->bind(QHostAddress::Any, 14551); // Listen for replies from the vehicle
+    m_kickstartTimer = new QTimer(this);
 
-           // 3. Connect the socket's readyRead signal to our new slot
+    m_udpSocket->bind(QHostAddress::AnyIPv4, 14551);
     connect(m_udpSocket, &QUdpSocket::readyRead, this, &MainWindow::readPendingDatagrams);
 
-           // 4. Connect the router's signals to debug slots for testing
-    connect(m_mavlinkRouter, &MavlinkRouter::vehicleArmed, this, [](bool armed){
-        qDebug() << "Vehicle Armed Status:" << armed;
+    connect(m_mavlinkRouter, &MavlinkRouter::vehicleArmed, m_vehicleModel, &VehicleModel::setArmed);
+
+
+    connect(m_vehicleModel, &VehicleModel::armedChanged, this, [](bool armed){
+        qDebug() << "--- [MODEL DATA] --- Vehicle Armed Status Updated:" << (armed ? "ARMED" : "DISARMED");
     });
 
-    connect(m_mavlinkRouter, &MavlinkRouter::rttCalculated, this, [](qint64 rtt_ms){
-        qDebug() << "Round Trip Time:" << rtt_ms << "ms";
+    connect(m_kickstartTimer, &QTimer::timeout, this, &MainWindow::sendKickstartPacket);
+        m_kickstartTimer->start(1000);
+
+    connect(m_healthModel, &HealthModel::gpsFixTypeChanged, this, [](int fix){
+        qDebug() << "--- [MODEL DATA] --- GPS Fix Type Updated:" << fix;
     });
 
-    qDebug() << "FlightScope Initialized. SITL should be running and sending to UDP 14550.";
+    qDebug() << "FlightScope Initialized. Waiting for SITL connection...";
 
-    // To start receiving, we need to send at least one packet to the SITL vehicle
-    // so it knows where to send the data. We send to the standard SITL port 14550.
-    QByteArray dummyData("1");
+    QByteArray dummyData("hello");
     m_udpSocket->writeDatagram(dummyData, QHostAddress::LocalHost, 14550);
 }
 
@@ -43,23 +49,31 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::sendKickstartPacket()
+{
+    qDebug() << "Sending kickstart packet to SITL...";
+    QByteArray dummyData("hello");
+    m_udpSocket->writeDatagram(dummyData, QHostAddress::LocalHost, 14550);
+}
+
 void MainWindow::readPendingDatagrams()
 {
-    while (m_udpSocket->hasPendingDatagrams()) {
-        QByteArray datagram;
-        datagram.resize(m_udpSocket->pendingDatagramSize());
-        QHostAddress sender;
-        quint16 senderPort;
 
-        m_udpSocket->readDatagram(datagram.data(), datagram.size(),
-                                  &sender, &senderPort);
+    if (m_kickstartTimer->isActive()) {
+        m_kickstartTimer->stop();
+        qDebug() << "Connection established! Stopping kickstart timer.";
+    }
+
+    while (m_udpSocket->hasPendingDatagrams()) {
+
+        QNetworkDatagram datagram = m_udpSocket->receiveDatagram();
+        QByteArray data = datagram.data();
 
         mavlink_message_t msg;
         mavlink_status_t status;
 
-        for (int i = 0; i < datagram.size(); ++i) {
-            if (mavlink_parse_char(MAVLINK_COMM_0, static_cast<uint8_t>(datagram.at(i)), &msg, &status)) {
-                // When a complete message is parsed, send it to the router
+        for (int i = 0; i < data.size(); ++i) {
+            if (mavlink_parse_char(MAVLINK_COMM_0, static_cast<uint8_t>(data.at(i)), &msg, &status)) {
                 m_mavlinkRouter->parseMessage(msg);
             }
         }

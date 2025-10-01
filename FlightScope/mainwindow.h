@@ -3,29 +3,35 @@
 
 #include <QMainWindow>
 
-// Forward declarations are better practice in header files
-// This tells the compiler these classes exist without including the full header
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 
-class QUdpSocket;       // <-- Forward declare QUdpSocket
-class MavlinkRouter;    // <-- Forward declare MavlinkRouter
+// Forward declarations
+class QUdpSocket;
+class MavlinkRouter;
+class VehicleModel;
+class HealthModel;
+class QTimer; // <-- Add QTimer forward declaration
 
 class MainWindow : public QMainWindow
 {
-    Q_OBJECT // <-- This macro is ESSENTIAL for signals and slots to work
+    Q_OBJECT
 
   public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-  private slots: // <-- The slot must be in a 'slots' section
+  private slots:
     void readPendingDatagrams();
+    void sendKickstartPacket();
 
   private:
     Ui::MainWindow *ui;
     QUdpSocket *m_udpSocket = nullptr;
     MavlinkRouter *m_mavlinkRouter = nullptr;
+    VehicleModel *m_vehicleModel = nullptr;
+    HealthModel *m_healthModel = nullptr;
+    QTimer *m_kickstartTimer = nullptr;
 };
 #endif // MAINWINDOW_H

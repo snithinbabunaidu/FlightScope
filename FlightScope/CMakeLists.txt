@@ -11,6 +11,9 @@ set(CMAKE_AUTORCC ON)
 
 # Find Qt6 and the required components
 find_package(Qt6 REQUIRED COMPONENTS Core Widgets Network)
+find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core)
+find_package(Qt6 REQUIRED COMPONENTS Core)
 
 # Define the source files for the executable
 qt_add_executable(FlightScope
@@ -21,6 +24,9 @@ qt_add_executable(FlightScope
     LinkInterface.h
     mavlinkrouter.cpp
     mavlinkrouter.h
+    vehiclemodel.h vehiclemodel.cpp
+    healthmodel.h healthmodel.cpp
+
 )
 
 target_compile_definitions(FlightScope PRIVATE MAVLINK_DIALECT=common)
@@ -33,8 +39,11 @@ target_include_directories(FlightScope PRIVATE
 target_link_libraries(FlightScope PRIVATE
     Qt::Core
     Qt::Widgets
-    Qt::Network # <-- Added missing Network module for QUdpSocket
+    Qt::Network
 )
+target_link_libraries(FlightScope PRIVATE Qt6::Core)
+target_link_libraries(FlightScope PRIVATE Qt6::Core)
+target_link_libraries(FlightScope PRIVATE Qt6::Core)
 
 # Set properties for macOS and Windows packaging
 set_target_properties(FlightScope PROPERTIES

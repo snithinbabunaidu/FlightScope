@@ -2,19 +2,26 @@ cmake_minimum_required(VERSION 3.16)
 
 project(SmokeTest LANGUAGES CXX)
 
-enable_testing()
+find_package(Qt6 REQUIRED COMPONENTS Test)
 
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Test Widgets)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Test Widgets)
+qt_add_executable(tst_smoketest
+    tst_smoketest.cpp
+    ../mainwindow.cpp
+    ../mavlinkrouter.cpp
+    ../vehiclemodel.cpp
+    ../healthmodel.cpp
+)
 
-set(CMAKE_AUTOUIC ON)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
+target_include_directories(tst_smoketest PRIVATE
+    "${CMAKE_SOURCE_DIR}/third_party"
+)
 
-set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+target_compile_definitions(tst_smoketest PRIVATE MAVLINK_DIALECT=common)
 
-add_executable(SmokeTest tst_smoketest.cpp)
-add_test(NAME SmokeTest COMMAND SmokeTest)
+target_link_libraries(tst_smoketest PRIVATE
+    Qt::Test
+    Qt::Widgets
+    Qt::Network
+)
 
-target_link_libraries(SmokeTest PRIVATE Qt${QT_VERSION_MAJOR}::Test Qt${QT_VERSION_MAJOR}::Widgets)
+add_test(NAME tst_smoketest COMMAND tst_smoketest)
