@@ -1,0 +1,11 @@
+# .clang-tidy
+Checks: '-*,
+          bugprone-*,
+          clang-analyzer-*,
+          cppcoreguidelines-*,
+          modernize-*,
+          performance-*,
+          readability-*'
+
+HeaderFilterRegex: '.*'
+AnalyzeTemporaryDtors: true
