@@ -2,10 +2,10 @@
 #define MAVLINKROUTER_H
 
 #include <QObject>
-#include <QByteArray>
 
-// Forward declaration of the MAVLink message struct
-struct mavlink_message_t;
+// CORRECT FIX: Include the header that defines mavlink_message_t,
+// instead of forward-declaring it. This resolves the conflict.
+#include <mavlink/mavlink_types.h>
 
 class MavlinkRouter : public QObject
 {
@@ -13,18 +13,17 @@ class MavlinkRouter : public QObject
   public:
     explicit MavlinkRouter(QObject *parent = nullptr);
 
-  public slots:
-    // This slot will connect to a LinkInterface's bytesReceived signal
-    void receiveBytes(const QByteArray& data);
+           // This function now uses a fully-defined type.
+    void parseMessage(const mavlink_message_t& message);
 
   signals:
-    // Signals to be emitted after parsing a HEARTBEAT message
+    // HEARTBEAT signals
     void vehicleArmed(bool armed);
-    void flightModeChanged(const QString& flightMode);
     void systemStatusChanged(int status);
 
-  private:
-    void parseMessage(const mavlink_message_t& message);
+           // TIMESYNC signal
+    void rttCalculated(qint64 rtt_ms);
+
 };
 
 #endif // MAVLINKROUTER_H
