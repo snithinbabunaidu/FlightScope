@@ -12,6 +12,8 @@
 #include "../comm/mavlinkrouter.h"
 #include "../models/vehiclemodel.h"
 #include "../models/healthmodel.h"
+#include "../models/missionmodel.h"
+#include "missioneditor.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -57,12 +59,15 @@ private:
     MavlinkRouter* m_mavlinkRouter;
     VehicleModel* m_vehicleModel;
     HealthModel* m_healthModel;
+    MissionModel* m_missionModel;
 
     // UI components
     QDockWidget* m_telemetryDock;
     QDockWidget* m_healthDock;
+    QDockWidget* m_missionDock;
     QWidget* m_telemetryWidget;
     QWidget* m_healthWidget;
+    MissionEditor* m_missionEditor;
 
     QAction* m_disconnectAction;
     QAction* m_disconnectToolAction;

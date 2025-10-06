@@ -12,8 +12,9 @@
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_connectionStatusLabel(nullptr),
       m_linkStatsLabel(nullptr), m_linkManager(nullptr), m_mavlinkRouter(nullptr),
-      m_vehicleModel(nullptr), m_healthModel(nullptr), m_telemetryDock(nullptr),
-      m_healthDock(nullptr), m_telemetryWidget(nullptr), m_healthWidget(nullptr),
+      m_vehicleModel(nullptr), m_healthModel(nullptr), m_missionModel(nullptr),
+      m_telemetryDock(nullptr), m_healthDock(nullptr), m_missionDock(nullptr),
+      m_telemetryWidget(nullptr), m_healthWidget(nullptr), m_missionEditor(nullptr),
       m_disconnectAction(nullptr), m_disconnectToolAction(nullptr), m_updateTimer(nullptr) {
     ui->setupUi(this);
 
@@ -22,6 +23,7 @@ MainWindow::MainWindow(QWidget* parent)
     m_mavlinkRouter = new MavlinkRouter(this);
     m_vehicleModel = new VehicleModel(this);
     m_healthModel = new HealthModel(this);
+    m_missionModel = new MissionModel(this);
     m_updateTimer = new QTimer(this);
 
     setupUi();
@@ -137,6 +139,12 @@ void MainWindow::setupDockWidgets() {
 
     m_healthDock->setWidget(m_healthWidget);
     addDockWidget(Qt::RightDockWidgetArea, m_healthDock);
+
+    // Mission Editor Dock
+    m_missionDock = new QDockWidget(tr("Mission Editor"), this);
+    m_missionEditor = new MissionEditor(m_missionModel, m_mavlinkRouter, m_vehicleModel, this);
+    m_missionDock->setWidget(m_missionEditor);
+    addDockWidget(Qt::LeftDockWidgetArea, m_missionDock);
 }
 
 void MainWindow::setupConnections() {

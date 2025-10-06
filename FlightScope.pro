@@ -22,6 +22,7 @@ SOURCES += \
     src/main.cpp \
     src/ui/mainwindow.cpp \
     src/ui/connectdialog.cpp \
+    src/ui/missioneditor.cpp \
     src/comm/udplink.cpp \
     src/comm/linkmanager.cpp \
     src/comm/mavlinkrouter.cpp \
@@ -34,6 +35,7 @@ SOURCES += \
 HEADERS += \
     src/ui/mainwindow.h \
     src/ui/connectdialog.h \
+    src/ui/missioneditor.h \
     src/comm/linkinterface.h \
     src/comm/udplink.h \
     src/comm/linkmanager.h \
