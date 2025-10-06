@@ -53,7 +53,7 @@ void ConnectDialog::setupUi() {
 
     m_localPortSpin = new QSpinBox(this);
     m_localPortSpin->setRange(1, 65535);
-    m_localPortSpin->setValue(14550);
+    m_localPortSpin->setValue(14551);  // Different from Mission Planner's 14550
     connectionLayout->addRow("Local Port:", m_localPortSpin);
 
     m_remoteAddressEdit = new QLineEdit("127.0.0.1", this);
@@ -68,8 +68,11 @@ void ConnectDialog::setupUi() {
 
     // Info label
     QLabel* infoLabel = new QLabel(
-        "<i>Note: UDP server mode (listen) is recommended for SITL connections.</i>", this);
+        "<b>Important:</b> FlightScope listens on a different port to avoid conflicts.<br>"
+        "<i>In Mission Planner, go to: Ctrl+F → \"MAVLink\" → Add output: UDP Client 127.0.0.1:14551</i>",
+        this);
     infoLabel->setWordWrap(true);
+    infoLabel->setStyleSheet("QLabel { background-color: #ffffcc; padding: 5px; border: 1px solid #999; }");
     mainLayout->addWidget(infoLabel);
 
     // Spacer
@@ -94,27 +97,27 @@ void ConnectDialog::loadPresets() {
 
     // Add ArduPilot SITL preset
     Preset arduPilot;
-    arduPilot.name = "ArduPilot SITL (UDP 14550)";
+    arduPilot.name = "ArduPilot SITL (Listen on 14551)";
     arduPilot.localAddress = "0.0.0.0";
-    arduPilot.localPort = 14550;
+    arduPilot.localPort = 14551;  // Listen on different port to avoid conflict
     arduPilot.remoteAddress = "127.0.0.1";
-    arduPilot.remotePort = 14550;
+    arduPilot.remotePort = 14550;  // Mission Planner broadcasts on 14550
     m_presets.append(arduPilot);
 
     // Add PX4 SITL preset
     Preset px4;
-    px4.name = "PX4 SITL (UDP 14540)";
+    px4.name = "PX4 SITL (Listen on 14541)";
     px4.localAddress = "0.0.0.0";
-    px4.localPort = 14540;
+    px4.localPort = 14541;  // Different from PX4's 14540
     px4.remoteAddress = "127.0.0.1";
     px4.remotePort = 14540;
     m_presets.append(px4);
 
     // Add MAVProxy preset
     Preset mavproxy;
-    mavproxy.name = "MAVProxy (UDP 14550)";
+    mavproxy.name = "MAVProxy (Listen on 14552)";
     mavproxy.localAddress = "0.0.0.0";
-    mavproxy.localPort = 14550;
+    mavproxy.localPort = 14552;
     mavproxy.remoteAddress = "127.0.0.1";
     mavproxy.remotePort = 14550;
     m_presets.append(mavproxy);

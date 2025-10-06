@@ -171,6 +171,13 @@ void LinkManager::stopHeartbeatMonitor() {
     }
 }
 
+void LinkManager::resetHeartbeatTimeout() {
+    // Restart the timer to reset the timeout countdown
+    if (m_heartbeatTimer && m_heartbeatTimer->isActive()) {
+        m_heartbeatTimer->start();
+    }
+}
+
 void LinkManager::startReconnectTimer() {
     if (m_reconnectTimer && !m_reconnectTimer->isActive()) {
         m_reconnectTimer->setInterval(m_reconnectDelay);

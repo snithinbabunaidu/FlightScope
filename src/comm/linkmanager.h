@@ -49,6 +49,11 @@ public slots:
      */
     void reconnect();
 
+    /**
+     * @brief Reset heartbeat timeout timer (call when messages received)
+     */
+    void resetHeartbeatTimeout();
+
 signals:
     /**
      * @brief Emitted when bytes are received from the active link

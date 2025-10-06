@@ -1,5 +1,6 @@
 #include "udplink.h"
 #include <QDebug>
+#include <QThread>
 
 UdpLink::UdpLink(const Configuration& config, QObject* parent)
     : LinkInterface(parent), m_config(config), m_socket(nullptr),
@@ -22,6 +23,8 @@ bool UdpLink::isConnected() const {
 }
 
 void UdpLink::connectLink() {
+    qDebug() << "UdpLink::connectLink() called on thread:" << QThread::currentThread();
+
     if (m_status == LinkStatus::Connected || m_status == LinkStatus::Connecting) {
         qWarning() << "UdpLink::connectLink() - Already connected or connecting";
         return;
@@ -30,20 +33,27 @@ void UdpLink::connectLink() {
     m_status = LinkStatus::Connecting;
     emit statusChanged(m_status);
 
-    // Create socket
+    // Create socket on the current thread (should be worker thread)
     m_socket = new QUdpSocket(this);
+    qDebug() << "Socket created, thread:" << m_socket->thread();
 
     // Connect signals
     connect(m_socket, &QUdpSocket::readyRead, this, &UdpLink::onReadyRead);
     connect(m_socket, &QUdpSocket::errorOccurred, this, &UdpLink::onErrorOccurred);
 
     // Bind to local port
-    if (m_socket->bind(m_config.localAddress, m_config.localPort,
-                       QUdpSocket::ShareAddress | QUdpSocket::ReuseAddressHint)) {
+    // Note: ReuseAddressHint allows multiple applications to bind to the same port
+    bool bindSuccess = m_socket->bind(m_config.localAddress, m_config.localPort,
+                                       QUdpSocket::ReuseAddressHint);
+
+    if (bindSuccess) {
         m_status = LinkStatus::Connected;
         emit statusChanged(m_status);
         qDebug() << "UDP Link connected:" << m_config.name << "listening on"
                  << m_config.localAddress.toString() << ":" << m_config.localPort;
+        qDebug() << "Socket state:" << m_socket->state()
+                 << "Local address:" << m_socket->localAddress()
+                 << "Local port:" << m_socket->localPort();
     } else {
         m_status = LinkStatus::Error;
         QString error = QString("Failed to bind UDP socket: %1").arg(m_socket->errorString());
@@ -95,12 +105,17 @@ void UdpLink::onReadyRead() {
             m_socket->readDatagram(datagram.data(), datagram.size(), &senderAddress, &senderPort);
 
         if (bytesRead > 0) {
-            // Update remote address if we haven't set it yet (for server mode)
-            if (m_config.isServer && m_config.remoteAddress.isNull()) {
+            // Always update remote address from sender (for server mode)
+            // This is necessary because Mission Planner uses random source ports
+            if (m_config.isServer) {
+                // Only log when address changes to reduce noise
+                bool addressChanged = (m_config.remoteAddress != senderAddress || m_config.remotePort != senderPort);
                 m_config.remoteAddress = senderAddress;
                 m_config.remotePort = senderPort;
-                qDebug() << "UDP Link learned remote address:" << senderAddress.toString() << ":"
-                         << senderPort;
+
+                if (addressChanged) {
+                    qInfo() << "UDP Link remote address updated to:" << senderAddress.toString() << ":" << senderPort;
+                }
             }
 
             datagram.resize(static_cast<int>(bytesRead));

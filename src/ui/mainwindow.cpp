@@ -170,13 +170,8 @@ void MainWindow::setupConnections() {
             &HealthModel::handleSystemStatus);
 
     // MAVLink Router heartbeat -> Link Manager (reset timeout)
-    connect(m_mavlinkRouter, &MavlinkRouter::heartbeatReceived, this,
-            [this]() {
-                // Heartbeat received - link is alive
-                if (m_linkManager) {
-                    // Reset any timeout logic
-                }
-            });
+    connect(m_mavlinkRouter, &MavlinkRouter::heartbeatReceived, m_linkManager,
+            &LinkManager::resetHeartbeatTimeout);
 
     // Link Manager status
     connect(m_linkManager, &LinkManager::connectionStatusChanged, this,

@@ -1,6 +1,7 @@
 #include "mavlinkrouter.h"
 #include <QDebug>
 #include <QDateTime>
+#include <QSet>
 
 MavlinkRouter::MavlinkRouter(QObject* parent)
     : QObject(parent), m_systemId(255), m_componentId(190), m_lastSeq(0), m_receivedPackets(0),
@@ -45,6 +46,13 @@ void MavlinkRouter::sendMessage(const mavlink_message_t& msg) {
 }
 
 void MavlinkRouter::parseMessage(const mavlink_message_t& msg) {
+    // Log all received message types (can be noisy, but useful for debugging)
+    static QSet<uint32_t> loggedMsgIds;
+    if (!loggedMsgIds.contains(msg.msgid)) {
+        qInfo() << "MavlinkRouter: First occurrence of message ID:" << msg.msgid;
+        loggedMsgIds.insert(msg.msgid);
+    }
+
     switch (msg.msgid) {
         case MAVLINK_MSG_ID_HEARTBEAT:
             handleHeartbeat(msg);
@@ -79,6 +87,16 @@ void MavlinkRouter::parseMessage(const mavlink_message_t& msg) {
 void MavlinkRouter::handleHeartbeat(const mavlink_message_t& msg) {
     mavlink_heartbeat_t heartbeat;
     mavlink_msg_heartbeat_decode(&msg, &heartbeat);
+
+    // Log first heartbeat from each system/component
+    static QSet<QPair<uint8_t, uint8_t>> loggedSystems;
+    QPair<uint8_t, uint8_t> systemKey(msg.sysid, msg.compid);
+    if (!loggedSystems.contains(systemKey)) {
+        qInfo() << "MavlinkRouter: First HEARTBEAT from system" << msg.sysid
+                << "component" << msg.compid << "- type:" << heartbeat.type
+                << "autopilot:" << heartbeat.autopilot;
+        loggedSystems.insert(systemKey);
+    }
 
     emit heartbeatReceived(msg.sysid, msg.compid, heartbeat.autopilot, heartbeat.type,
                            heartbeat.system_status, heartbeat.base_mode, heartbeat.custom_mode);
