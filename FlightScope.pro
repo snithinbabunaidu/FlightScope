@@ -20,11 +20,24 @@ INCLUDEPATH += $$PWD/src
 # Source files
 SOURCES += \
     src/main.cpp \
-    src/ui/mainwindow.cpp
+    src/ui/mainwindow.cpp \
+    src/ui/connectdialog.cpp \
+    src/comm/udplink.cpp \
+    src/comm/linkmanager.cpp \
+    src/comm/mavlinkrouter.cpp \
+    src/models/vehiclemodel.cpp \
+    src/models/healthmodel.cpp
 
 # Header files
 HEADERS += \
-    src/ui/mainwindow.h
+    src/ui/mainwindow.h \
+    src/ui/connectdialog.h \
+    src/comm/linkinterface.h \
+    src/comm/udplink.h \
+    src/comm/linkmanager.h \
+    src/comm/mavlinkrouter.h \
+    src/models/vehiclemodel.h \
+    src/models/healthmodel.h
 
 # Forms
 FORMS += \
