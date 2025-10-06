@@ -78,6 +78,27 @@ void MavlinkRouter::parseMessage(const mavlink_message_t& msg) {
         case MAVLINK_MSG_ID_SYS_STATUS:
             handleSystemStatus(msg);
             break;
+        case MAVLINK_MSG_ID_MISSION_COUNT:
+            handleMissionCount(msg);
+            break;
+        case MAVLINK_MSG_ID_MISSION_REQUEST:
+            handleMissionRequest(msg);
+            break;
+        case MAVLINK_MSG_ID_MISSION_REQUEST_INT:
+            handleMissionRequestInt(msg);
+            break;
+        case MAVLINK_MSG_ID_MISSION_ITEM:
+            handleMissionItem(msg);
+            break;
+        case MAVLINK_MSG_ID_MISSION_ITEM_INT:
+            handleMissionItemInt(msg);
+            break;
+        case MAVLINK_MSG_ID_MISSION_ACK:
+            handleMissionAck(msg);
+            break;
+        case MAVLINK_MSG_ID_MISSION_CURRENT:
+            handleMissionCurrent(msg);
+            break;
         default:
             // Other messages are ignored for now
             break;
@@ -182,6 +203,127 @@ void MavlinkRouter::handleSystemStatus(const mavlink_message_t& msg) {
 
     emit systemStatusReceived(status.voltage_battery, status.current_battery,
                               status.battery_remaining);
+}
+
+void MavlinkRouter::handleMissionCount(const mavlink_message_t& msg) {
+    mavlink_mission_count_t missionCount;
+    mavlink_msg_mission_count_decode(&msg, &missionCount);
+
+    qDebug() << "MavlinkRouter: Received MISSION_COUNT, count:" << missionCount.count
+             << "mission_type:" << missionCount.mission_type;
+
+    emit missionCountReceived(missionCount.count, missionCount.mission_type);
+}
+
+void MavlinkRouter::handleMissionRequest(const mavlink_message_t& msg) {
+    mavlink_mission_request_t missionRequest;
+    mavlink_msg_mission_request_decode(&msg, &missionRequest);
+
+    qDebug() << "MavlinkRouter: Received MISSION_REQUEST, seq:" << missionRequest.seq
+             << "mission_type:" << missionRequest.mission_type;
+
+    emit missionRequestReceived(missionRequest.seq, missionRequest.mission_type);
+}
+
+void MavlinkRouter::handleMissionRequestInt(const mavlink_message_t& msg) {
+    mavlink_mission_request_int_t missionRequest;
+    mavlink_msg_mission_request_int_decode(&msg, &missionRequest);
+
+    qDebug() << "MavlinkRouter: Received MISSION_REQUEST_INT, seq:" << missionRequest.seq
+             << "mission_type:" << missionRequest.mission_type;
+
+    emit missionRequestIntReceived(missionRequest.seq, missionRequest.mission_type);
+}
+
+void MavlinkRouter::handleMissionItem(const mavlink_message_t& msg) {
+    mavlink_mission_item_t missionItem;
+    mavlink_msg_mission_item_decode(&msg, &missionItem);
+
+    qDebug() << "MavlinkRouter: Received MISSION_ITEM, seq:" << missionItem.seq
+             << "command:" << missionItem.command;
+
+    emit missionItemReceived(missionItem);
+}
+
+void MavlinkRouter::handleMissionItemInt(const mavlink_message_t& msg) {
+    mavlink_mission_item_int_t missionItem;
+    mavlink_msg_mission_item_int_decode(&msg, &missionItem);
+
+    qDebug() << "MavlinkRouter: Received MISSION_ITEM_INT, seq:" << missionItem.seq
+             << "command:" << missionItem.command
+             << "lat:" << missionItem.x << "lon:" << missionItem.y << "alt:" << missionItem.z;
+
+    emit missionItemIntReceived(missionItem);
+}
+
+void MavlinkRouter::handleMissionAck(const mavlink_message_t& msg) {
+    mavlink_mission_ack_t missionAck;
+    mavlink_msg_mission_ack_decode(&msg, &missionAck);
+
+    const char* resultStr = "UNKNOWN";
+    switch (missionAck.type) {
+        case MAV_MISSION_ACCEPTED:
+            resultStr = "ACCEPTED";
+            break;
+        case MAV_MISSION_ERROR:
+            resultStr = "ERROR";
+            break;
+        case MAV_MISSION_UNSUPPORTED_FRAME:
+            resultStr = "UNSUPPORTED_FRAME";
+            break;
+        case MAV_MISSION_UNSUPPORTED:
+            resultStr = "UNSUPPORTED";
+            break;
+        case MAV_MISSION_NO_SPACE:
+            resultStr = "NO_SPACE";
+            break;
+        case MAV_MISSION_INVALID:
+            resultStr = "INVALID";
+            break;
+        case MAV_MISSION_INVALID_PARAM1:
+            resultStr = "INVALID_PARAM1";
+            break;
+        case MAV_MISSION_INVALID_PARAM2:
+            resultStr = "INVALID_PARAM2";
+            break;
+        case MAV_MISSION_INVALID_PARAM3:
+            resultStr = "INVALID_PARAM3";
+            break;
+        case MAV_MISSION_INVALID_PARAM4:
+            resultStr = "INVALID_PARAM4";
+            break;
+        case MAV_MISSION_INVALID_PARAM5_X:
+            resultStr = "INVALID_PARAM5_X";
+            break;
+        case MAV_MISSION_INVALID_PARAM6_Y:
+            resultStr = "INVALID_PARAM6_Y";
+            break;
+        case MAV_MISSION_INVALID_PARAM7:
+            resultStr = "INVALID_PARAM7";
+            break;
+        case MAV_MISSION_INVALID_SEQUENCE:
+            resultStr = "INVALID_SEQUENCE";
+            break;
+        case MAV_MISSION_DENIED:
+            resultStr = "DENIED";
+            break;
+    }
+
+    qInfo() << "MavlinkRouter: Received MISSION_ACK, type:" << missionAck.type
+            << "(" << resultStr << ")"
+            << "mission_type:" << missionAck.mission_type;
+
+    emit missionAckReceived(missionAck.type, missionAck.mission_type);
+}
+
+void MavlinkRouter::handleMissionCurrent(const mavlink_message_t& msg) {
+    mavlink_mission_current_t missionCurrent;
+    mavlink_msg_mission_current_decode(&msg, &missionCurrent);
+
+    qDebug() << "MavlinkRouter: Received MISSION_CURRENT, seq:" << missionCurrent.seq
+             << "total:" << missionCurrent.total;
+
+    emit missionCurrentReceived(missionCurrent.seq, missionCurrent.total);
 }
 
 void MavlinkRouter::updatePacketLoss(uint8_t seq) {

@@ -26,7 +26,9 @@ SOURCES += \
     src/comm/linkmanager.cpp \
     src/comm/mavlinkrouter.cpp \
     src/models/vehiclemodel.cpp \
-    src/models/healthmodel.cpp
+    src/models/healthmodel.cpp \
+    src/models/waypoint.cpp \
+    src/models/missionmodel.cpp
 
 # Header files
 HEADERS += \
@@ -37,7 +39,9 @@ HEADERS += \
     src/comm/linkmanager.h \
     src/comm/mavlinkrouter.h \
     src/models/vehiclemodel.h \
-    src/models/healthmodel.h
+    src/models/healthmodel.h \
+    src/models/waypoint.h \
+    src/models/missionmodel.h
 
 # Forms
 FORMS += \

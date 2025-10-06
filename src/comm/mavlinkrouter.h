@@ -88,6 +88,17 @@ signals:
     void systemStatusReceived(uint16_t voltage, int16_t currentBattery, int8_t batteryRemaining);
 
     /**
+     * @brief Emitted when mission protocol messages are received
+     */
+    void missionCountReceived(uint16_t count, uint8_t missionType);
+    void missionRequestReceived(uint16_t seq, uint8_t missionType);
+    void missionRequestIntReceived(uint16_t seq, uint8_t missionType);
+    void missionItemReceived(const mavlink_mission_item_t& item);
+    void missionItemIntReceived(const mavlink_mission_item_int_t& item);
+    void missionAckReceived(uint8_t type, uint8_t missionType);
+    void missionCurrentReceived(uint16_t seq, uint16_t total);
+
+    /**
      * @brief Emitted when packet loss changes
      */
     void packetLossChanged(float loss);
@@ -107,6 +118,13 @@ private:
     void handleBatteryStatus(const mavlink_message_t& msg);
     void handleGpsRaw(const mavlink_message_t& msg);
     void handleSystemStatus(const mavlink_message_t& msg);
+    void handleMissionCount(const mavlink_message_t& msg);
+    void handleMissionRequest(const mavlink_message_t& msg);
+    void handleMissionRequestInt(const mavlink_message_t& msg);
+    void handleMissionItem(const mavlink_message_t& msg);
+    void handleMissionItemInt(const mavlink_message_t& msg);
+    void handleMissionAck(const mavlink_message_t& msg);
+    void handleMissionCurrent(const mavlink_message_t& msg);
     void updatePacketLoss(uint8_t seq);
 
     mavlink_status_t m_status;
