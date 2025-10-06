@@ -1,0 +1,9 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/PrimaryFlightDisplay.qml</file>
+    </qresource>
+    <qresource prefix="/styles">
+    </qresource>
+    <qresource prefix="/images">
+    </qresource>
+</RCC>
