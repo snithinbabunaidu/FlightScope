@@ -69,3 +69,9 @@ flightscope_debug.log
 # IDE
 .vscode/
 .claude/
+
+# Test binaries
+test_*.exe
+tests.exe
+tests/Makefile*
+tests/.qmake*
