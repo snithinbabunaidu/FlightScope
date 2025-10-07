@@ -99,6 +99,9 @@ void MavlinkRouter::parseMessage(const mavlink_message_t& msg) {
         case MAVLINK_MSG_ID_MISSION_CURRENT:
             handleMissionCurrent(msg);
             break;
+        case MAVLINK_MSG_ID_COMMAND_ACK:
+            handleCommandAck(msg);
+            break;
         default:
             // Other messages are ignored for now
             break;
@@ -324,6 +327,41 @@ void MavlinkRouter::handleMissionCurrent(const mavlink_message_t& msg) {
              << "total:" << missionCurrent.total;
 
     emit missionCurrentReceived(missionCurrent.seq, missionCurrent.total);
+}
+
+void MavlinkRouter::handleCommandAck(const mavlink_message_t& msg) {
+    mavlink_command_ack_t commandAck;
+    mavlink_msg_command_ack_decode(&msg, &commandAck);
+
+    QString resultStr;
+    switch (commandAck.result) {
+        case MAV_RESULT_ACCEPTED:
+            resultStr = "ACCEPTED";
+            break;
+        case MAV_RESULT_TEMPORARILY_REJECTED:
+            resultStr = "TEMPORARILY_REJECTED";
+            break;
+        case MAV_RESULT_DENIED:
+            resultStr = "DENIED";
+            break;
+        case MAV_RESULT_UNSUPPORTED:
+            resultStr = "UNSUPPORTED";
+            break;
+        case MAV_RESULT_FAILED:
+            resultStr = "FAILED";
+            break;
+        case MAV_RESULT_IN_PROGRESS:
+            resultStr = "IN_PROGRESS";
+            break;
+        default:
+            resultStr = QString::number(commandAck.result);
+            break;
+    }
+
+    qInfo() << "MavlinkRouter: Received COMMAND_ACK for command" << commandAck.command
+            << "result:" << resultStr;
+
+    emit commandAckReceived(commandAck.command, commandAck.result);
 }
 
 void MavlinkRouter::updatePacketLoss(uint8_t seq) {

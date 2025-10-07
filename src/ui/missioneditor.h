@@ -61,6 +61,7 @@ private:
     // Mission upload/download state machine
     void startMissionUpload();
     void sendNextMissionItem();
+    void sendMissionSetCurrent(uint16_t seq);
     void startMissionDownload();
     void requestNextMissionItem();
     void finalizeMissionDownload();

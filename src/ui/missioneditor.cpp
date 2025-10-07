@@ -252,16 +252,18 @@ void MissionEditor::onMissionModelChanged() {
 void MissionEditor::startMissionUpload() {
     m_protocolState = ProtocolState::UploadingCount;
     m_expectedItemSeq = 0;
-    m_totalItemCount = m_missionModel->count();
+
+    // CRITICAL: Add 1 for HOME waypoint (item 0) - ArduPilot requires this!
+    m_totalItemCount = m_missionModel->count() + 1;
 
     // Update target IDs from vehicle model
     m_targetSystemId = m_vehicleModel->systemId();
     m_targetComponentId = m_vehicleModel->componentId();
 
     setUiEnabled(false);
-    setStatusText(QString("Uploading mission (%1 items)...").arg(m_totalItemCount));
+    setStatusText(QString("Uploading mission (%1 waypoints + HOME)...").arg(m_missionModel->count()));
 
-    // Send MISSION_COUNT
+    // Send MISSION_COUNT (includes HOME waypoint)
     mavlink_message_t msg;
     mavlink_mission_count_t missionCount{};
     missionCount.target_system = m_targetSystemId;
@@ -295,28 +297,66 @@ void MissionEditor::onMissionRequestIntReceived(uint16_t seq, uint8_t missionTyp
 }
 
 void MissionEditor::sendNextMissionItem() {
-    if (m_expectedItemSeq >= m_missionModel->count()) {
-        qWarning() << "MissionEditor: Requested seq" << m_expectedItemSeq << "out of range";
-        return;
-    }
-
-    const Waypoint* wp = m_missionModel->waypointAt(m_expectedItemSeq);
-    if (!wp) {
-        return;
-    }
-
-    mavlink_mission_item_int_t item = wp->toMavlinkMissionItemInt();
+    mavlink_mission_item_int_t item{};
     item.target_system = m_targetSystemId;
     item.target_component = m_targetComponentId;
     item.mission_type = MAV_MISSION_TYPE_MISSION;
+    item.seq = m_expectedItemSeq;
+
+    // Item 0 is always HOME waypoint
+    if (m_expectedItemSeq == 0) {
+        item.command = MAV_CMD_NAV_WAYPOINT;
+        item.frame = MAV_FRAME_GLOBAL;
+        item.current = 1;  // HOME is current
+        item.autocontinue = 1;
+        // Use current vehicle position (0,0,0 means use current position)
+        item.x = 0;
+        item.y = 0;
+        item.z = 0;
+
+        qInfo() << "MissionEditor: Sending HOME waypoint (seq 0)";
+    } else {
+        // Real waypoints start from seq 1
+        int wpIndex = m_expectedItemSeq - 1;
+        if (wpIndex >= m_missionModel->count()) {
+            qWarning() << "MissionEditor: Requested seq" << m_expectedItemSeq << "out of range";
+            return;
+        }
+
+        const Waypoint* wp = m_missionModel->waypointAt(wpIndex);
+        if (!wp) {
+            return;
+        }
+
+        item = wp->toMavlinkMissionItemInt();
+        item.seq = m_expectedItemSeq;  // Renumber (user waypoint 0 becomes seq 1)
+        item.current = 0;
+        item.target_system = m_targetSystemId;
+        item.target_component = m_targetComponentId;
+        item.mission_type = MAV_MISSION_TYPE_MISSION;
+
+        qDebug() << "MissionEditor: Sending waypoint" << wpIndex << "as seq" << m_expectedItemSeq;
+    }
 
     mavlink_message_t msg;
     mavlink_msg_mission_item_int_encode(255, 190, &msg, &item);
     m_mavlinkRouter->sendMessage(msg);
 
     setStatusText(QString("Uploading item %1/%2...").arg(m_expectedItemSeq + 1).arg(m_totalItemCount));
+}
 
-    qDebug() << "MissionEditor: Sent MISSION_ITEM_INT seq:" << item.seq << "cmd:" << item.command;
+void MissionEditor::sendMissionSetCurrent(uint16_t seq) {
+    mavlink_message_t msg;
+    mavlink_mission_set_current_t setCurrent{};
+
+    setCurrent.target_system = m_targetSystemId;
+    setCurrent.target_component = m_targetComponentId;
+    setCurrent.seq = seq;
+
+    mavlink_msg_mission_set_current_encode(255, 190, &msg, &setCurrent);
+    m_mavlinkRouter->sendMessage(msg);
+
+    qInfo() << "MissionEditor: Sent MISSION_SET_CURRENT, seq:" << seq;
 }
 
 void MissionEditor::onMissionAckReceived(uint8_t type, uint8_t missionType) {
@@ -328,6 +368,10 @@ void MissionEditor::onMissionAckReceived(uint8_t type, uint8_t missionType) {
         if (type == MAV_MISSION_ACCEPTED) {
             setStatusText("Mission upload complete!");
             m_missionModel->markSaved();
+
+            // Set current mission item to 0 (start from beginning)
+            sendMissionSetCurrent(0);
+
             emit missionUploadComplete(true);
         } else {
             setStatusText(QString("Mission upload failed (error code: %1)").arg(type));

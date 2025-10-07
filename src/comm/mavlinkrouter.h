@@ -99,6 +99,11 @@ signals:
     void missionCurrentReceived(uint16_t seq, uint16_t total);
 
     /**
+     * @brief Emitted when command acknowledgment is received
+     */
+    void commandAckReceived(uint16_t command, uint8_t result);
+
+    /**
      * @brief Emitted when packet loss changes
      */
     void packetLossChanged(float loss);
@@ -125,6 +130,7 @@ private:
     void handleMissionItemInt(const mavlink_message_t& msg);
     void handleMissionAck(const mavlink_message_t& msg);
     void handleMissionCurrent(const mavlink_message_t& msg);
+    void handleCommandAck(const mavlink_message_t& msg);
     void updatePacketLoss(uint8_t seq);
 
     mavlink_status_t m_status;

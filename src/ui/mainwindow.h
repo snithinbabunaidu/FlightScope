@@ -10,6 +10,7 @@
 #include <QDockWidget>
 #include "../comm/linkmanager.h"
 #include "../comm/mavlinkrouter.h"
+#include "../comm/commandbus.h"
 #include "../models/vehiclemodel.h"
 #include "../models/healthmodel.h"
 #include "../models/missionmodel.h"
@@ -40,6 +41,17 @@ private slots:
     void updateTelemetryDisplay();
     void updateLinkStats();
 
+    // Flight control slots
+    void onGuidedTriggered();
+    void onAutoTriggered();
+    void onArmTriggered();
+    void onDisarmTriggered();
+    void onTakeoffTriggered();
+    void onLandTriggered();
+    void onRtlTriggered();
+    void onStartMissionTriggered();
+    void onCommandAck(uint16_t command, uint8_t result);
+
 private:
     void setupUi();
     void setupMenus();
@@ -57,6 +69,7 @@ private:
     // Core components
     LinkManager* m_linkManager;
     MavlinkRouter* m_mavlinkRouter;
+    CommandBus* m_commandBus;
     VehicleModel* m_vehicleModel;
     HealthModel* m_healthModel;
     MissionModel* m_missionModel;
@@ -71,6 +84,16 @@ private:
 
     QAction* m_disconnectAction;
     QAction* m_disconnectToolAction;
+
+    // Flight control actions
+    QAction* m_guidedAction;
+    QAction* m_autoAction;
+    QAction* m_armAction;
+    QAction* m_disarmAction;
+    QAction* m_takeoffAction;
+    QAction* m_landAction;
+    QAction* m_rtlAction;
+    QAction* m_startMissionAction;
 
     QTimer* m_updateTimer;
 };

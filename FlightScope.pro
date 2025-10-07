@@ -26,6 +26,7 @@ SOURCES += \
     src/comm/udplink.cpp \
     src/comm/linkmanager.cpp \
     src/comm/mavlinkrouter.cpp \
+    src/comm/commandbus.cpp \
     src/models/vehiclemodel.cpp \
     src/models/healthmodel.cpp \
     src/models/waypoint.cpp \
@@ -40,6 +41,7 @@ HEADERS += \
     src/comm/udplink.h \
     src/comm/linkmanager.h \
     src/comm/mavlinkrouter.h \
+    src/comm/commandbus.h \
     src/models/vehiclemodel.h \
     src/models/healthmodel.h \
     src/models/waypoint.h \

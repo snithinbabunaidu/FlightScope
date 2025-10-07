@@ -2,6 +2,7 @@
 #include "ui_mainwindow.h"
 #include "connectdialog.h"
 #include <QMessageBox>
+#include <QInputDialog>
 #include <QAction>
 #include <QMenu>
 #include <QVBoxLayout>
@@ -12,10 +13,11 @@
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_connectionStatusLabel(nullptr),
       m_linkStatsLabel(nullptr), m_linkManager(nullptr), m_mavlinkRouter(nullptr),
-      m_vehicleModel(nullptr), m_healthModel(nullptr), m_missionModel(nullptr),
-      m_telemetryDock(nullptr), m_healthDock(nullptr), m_missionDock(nullptr),
-      m_telemetryWidget(nullptr), m_healthWidget(nullptr), m_missionEditor(nullptr),
-      m_disconnectAction(nullptr), m_disconnectToolAction(nullptr), m_updateTimer(nullptr) {
+      m_commandBus(nullptr), m_vehicleModel(nullptr), m_healthModel(nullptr),
+      m_missionModel(nullptr), m_telemetryDock(nullptr), m_healthDock(nullptr),
+      m_missionDock(nullptr), m_telemetryWidget(nullptr), m_healthWidget(nullptr),
+      m_missionEditor(nullptr), m_disconnectAction(nullptr), m_disconnectToolAction(nullptr),
+      m_updateTimer(nullptr) {
     ui->setupUi(this);
 
     // Create core components
@@ -24,6 +26,7 @@ MainWindow::MainWindow(QWidget* parent)
     m_vehicleModel = new VehicleModel(this);
     m_healthModel = new HealthModel(this);
     m_missionModel = new MissionModel(this);
+    m_commandBus = new CommandBus(m_mavlinkRouter, m_vehicleModel, this);
     m_updateTimer = new QTimer(this);
 
     setupUi();
@@ -99,6 +102,58 @@ void MainWindow::setupToolbars() {
     m_disconnectToolAction->setEnabled(false);
     connect(m_disconnectToolAction, &QAction::triggered, this, &MainWindow::onDisconnectTriggered);
     mainToolbar->addAction(m_disconnectToolAction);
+
+    mainToolbar->addSeparator();
+
+    // Flight control toolbar
+    QToolBar* flightToolbar = addToolBar(tr("Flight Control"));
+    flightToolbar->setObjectName("FlightControlToolbar");
+
+    m_guidedAction = new QAction(tr("Guided Mode"), this);
+    m_guidedAction->setEnabled(false);
+    connect(m_guidedAction, &QAction::triggered, this, &MainWindow::onGuidedTriggered);
+    flightToolbar->addAction(m_guidedAction);
+
+    m_autoAction = new QAction(tr("Auto Mode"), this);
+    m_autoAction->setEnabled(false);
+    connect(m_autoAction, &QAction::triggered, this, &MainWindow::onAutoTriggered);
+    flightToolbar->addAction(m_autoAction);
+
+    flightToolbar->addSeparator();
+
+    m_armAction = new QAction(tr("Arm"), this);
+    m_armAction->setEnabled(false);
+    connect(m_armAction, &QAction::triggered, this, &MainWindow::onArmTriggered);
+    flightToolbar->addAction(m_armAction);
+
+    m_disarmAction = new QAction(tr("Disarm"), this);
+    m_disarmAction->setEnabled(false);
+    connect(m_disarmAction, &QAction::triggered, this, &MainWindow::onDisarmTriggered);
+    flightToolbar->addAction(m_disarmAction);
+
+    flightToolbar->addSeparator();
+
+    m_takeoffAction = new QAction(tr("Takeoff"), this);
+    m_takeoffAction->setEnabled(false);
+    connect(m_takeoffAction, &QAction::triggered, this, &MainWindow::onTakeoffTriggered);
+    flightToolbar->addAction(m_takeoffAction);
+
+    m_landAction = new QAction(tr("Land"), this);
+    m_landAction->setEnabled(false);
+    connect(m_landAction, &QAction::triggered, this, &MainWindow::onLandTriggered);
+    flightToolbar->addAction(m_landAction);
+
+    m_rtlAction = new QAction(tr("RTL"), this);
+    m_rtlAction->setEnabled(false);
+    connect(m_rtlAction, &QAction::triggered, this, &MainWindow::onRtlTriggered);
+    flightToolbar->addAction(m_rtlAction);
+
+    flightToolbar->addSeparator();
+
+    m_startMissionAction = new QAction(tr("Start Mission"), this);
+    m_startMissionAction->setEnabled(false);
+    connect(m_startMissionAction, &QAction::triggered, this, &MainWindow::onStartMissionTriggered);
+    flightToolbar->addAction(m_startMissionAction);
 }
 
 void MainWindow::setupStatusBar() {
@@ -190,6 +245,10 @@ void MainWindow::setupConnections() {
     // Update timer
     connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::updateTelemetryDisplay);
     connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::updateLinkStats);
+
+    // CommandBus -> MainWindow (command acknowledgments)
+    connect(m_mavlinkRouter, &MavlinkRouter::commandAckReceived, this,
+            &MainWindow::onCommandAck);
 }
 
 void MainWindow::onConnectTriggered() {
@@ -216,12 +275,33 @@ void MainWindow::onConnectionStatusChanged(bool connected) {
         m_connectionStatusLabel->setStyleSheet("QLabel { background-color: green; color: white; }");
         m_disconnectAction->setEnabled(true);
         m_disconnectToolAction->setEnabled(true);
+
+        // Enable flight control buttons
+        m_guidedAction->setEnabled(true);
+        m_autoAction->setEnabled(true);
+        m_armAction->setEnabled(true);
+        m_disarmAction->setEnabled(true);
+        m_takeoffAction->setEnabled(true);
+        m_landAction->setEnabled(true);
+        m_rtlAction->setEnabled(true);
+        m_startMissionAction->setEnabled(true);
+
         statusBar()->showMessage(tr("Connected successfully"), 3000);
     } else {
         m_connectionStatusLabel->setText(tr("Not Connected"));
         m_connectionStatusLabel->setStyleSheet("");
         m_disconnectAction->setEnabled(false);
         m_disconnectToolAction->setEnabled(false);
+
+        // Disable flight control buttons
+        m_guidedAction->setEnabled(false);
+        m_autoAction->setEnabled(false);
+        m_armAction->setEnabled(false);
+        m_disarmAction->setEnabled(false);
+        m_takeoffAction->setEnabled(false);
+        m_landAction->setEnabled(false);
+        m_rtlAction->setEnabled(false);
+        m_startMissionAction->setEnabled(false);
     }
 }
 
@@ -313,4 +393,138 @@ void MainWindow::onAboutTriggered() {
            "</ul>"
            "<p><b>Note:</b> This application uses OpenStreetMap tiles. "
            "Please respect their tile usage policy.</p>"));
+}
+
+void MainWindow::onGuidedTriggered() {
+    m_commandBus->switchToGuided();
+    statusBar()->showMessage(tr("Switching to GUIDED mode..."), 3000);
+}
+
+void MainWindow::onAutoTriggered() {
+    m_commandBus->setMode(3);  // ArduCopter AUTO = 3
+    statusBar()->showMessage(tr("Switching to AUTO mode..."), 3000);
+}
+
+void MainWindow::onArmTriggered() {
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this, tr("Arm Vehicle"), tr("Are you sure you want to ARM the vehicle?"),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        m_commandBus->arm();
+        statusBar()->showMessage(tr("Sending ARM command..."), 3000);
+    }
+}
+
+void MainWindow::onDisarmTriggered() {
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this, tr("Disarm Vehicle"), tr("Are you sure you want to DISARM the vehicle?"),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        m_commandBus->disarm();
+        statusBar()->showMessage(tr("Sending DISARM command..."), 3000);
+    }
+}
+
+void MainWindow::onTakeoffTriggered() {
+    bool ok;
+    double altitude =
+        QInputDialog::getDouble(this, tr("Takeoff"), tr("Enter takeoff altitude (meters):"), 10.0,
+                                1.0, 100.0, 1, &ok);
+
+    if (ok) {
+        m_commandBus->takeoff(static_cast<float>(altitude));
+        statusBar()->showMessage(tr("Sending TAKEOFF command (altitude: %1m)...").arg(altitude),
+                                 3000);
+    }
+}
+
+void MainWindow::onLandTriggered() {
+    QMessageBox::StandardButton reply =
+        QMessageBox::question(this, tr("Land Vehicle"), tr("Are you sure you want to LAND?"),
+                              QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        m_commandBus->land();
+        statusBar()->showMessage(tr("Sending LAND command..."), 3000);
+    }
+}
+
+void MainWindow::onRtlTriggered() {
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this, tr("Return to Launch"), tr("Are you sure you want to Return to Launch (RTL)?"),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        m_commandBus->returnToLaunch();
+        statusBar()->showMessage(tr("Sending RTL command..."), 3000);
+    }
+}
+
+void MainWindow::onStartMissionTriggered() {
+    // Just switch to AUTO mode - this will start the mission automatically
+    m_commandBus->setMode(3);  // ArduCopter AUTO = 3
+    statusBar()->showMessage(tr("Switching to AUTO mode to start mission..."), 3000);
+}
+
+void MainWindow::onCommandAck(uint16_t command, uint8_t result) {
+    QString commandName;
+    switch (command) {
+        case MAV_CMD_COMPONENT_ARM_DISARM:
+            commandName = "ARM/DISARM";
+            break;
+        case MAV_CMD_NAV_TAKEOFF:
+            commandName = "TAKEOFF";
+            break;
+        case MAV_CMD_NAV_LAND:
+            commandName = "LAND";
+            break;
+        case MAV_CMD_NAV_RETURN_TO_LAUNCH:
+            commandName = "RTL";
+            break;
+        case MAV_CMD_DO_SET_MODE:
+            commandName = "SET_MODE";
+            break;
+        case MAV_CMD_MISSION_START:
+            commandName = "MISSION_START";
+            break;
+        default:
+            commandName = QString::number(command);
+            break;
+    }
+
+    QString resultStr;
+    switch (result) {
+        case MAV_RESULT_ACCEPTED:
+            resultStr = "ACCEPTED";
+            statusBar()->showMessage(
+                tr("Command %1 accepted").arg(commandName), 3000);
+            break;
+        case MAV_RESULT_TEMPORARILY_REJECTED:
+            resultStr = "TEMPORARILY REJECTED";
+            QMessageBox::warning(this, tr("Command Rejected"),
+                                 tr("Command %1 was temporarily rejected").arg(commandName));
+            break;
+        case MAV_RESULT_DENIED:
+            resultStr = "DENIED";
+            QMessageBox::warning(this, tr("Command Denied"),
+                                 tr("Command %1 was denied").arg(commandName));
+            break;
+        case MAV_RESULT_UNSUPPORTED:
+            resultStr = "UNSUPPORTED";
+            QMessageBox::warning(this, tr("Command Unsupported"),
+                                 tr("Command %1 is unsupported").arg(commandName));
+            break;
+        case MAV_RESULT_FAILED:
+            resultStr = "FAILED";
+            QMessageBox::warning(this, tr("Command Failed"),
+                                 tr("Command %1 failed").arg(commandName));
+            break;
+        default:
+            resultStr = QString::number(result);
+            break;
+    }
+
+    qInfo() << "MainWindow: Command" << commandName << "result:" << resultStr;
 }
