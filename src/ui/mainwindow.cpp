@@ -16,8 +16,8 @@ MainWindow::MainWindow(QWidget* parent)
       m_commandBus(nullptr), m_vehicleModel(nullptr), m_healthModel(nullptr),
       m_missionModel(nullptr), m_telemetryDock(nullptr), m_healthDock(nullptr),
       m_missionDock(nullptr), m_telemetryWidget(nullptr), m_healthWidget(nullptr),
-      m_missionEditor(nullptr), m_disconnectAction(nullptr), m_disconnectToolAction(nullptr),
-      m_updateTimer(nullptr) {
+      m_missionEditor(nullptr), m_mapWidget(nullptr), m_disconnectAction(nullptr),
+      m_disconnectToolAction(nullptr), m_updateTimer(nullptr) {
     ui->setupUi(this);
 
     // Create core components
@@ -52,9 +52,13 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::setupUi() {
-    // Central widget will be set up in later phases
-    QWidget* centralWidget = new QWidget(this);
-    setCentralWidget(centralWidget);
+    // Create map widget as central widget
+    m_mapWidget = new MapWidget(this);
+    setCentralWidget(m_mapWidget);
+
+    // Connect map to models
+    m_mapWidget->setVehicleModel(m_vehicleModel);
+    m_mapWidget->setMissionModel(m_missionModel);
 }
 
 void MainWindow::setupMenus() {

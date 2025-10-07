@@ -1,4 +1,4 @@
-QT += core gui widgets qml quick location positioning network websockets charts
+QT += core gui widgets qml quick quickwidgets location positioning network websockets charts
 
 CONFIG += c++17
 
@@ -23,6 +23,7 @@ SOURCES += \
     src/ui/mainwindow.cpp \
     src/ui/connectdialog.cpp \
     src/ui/missioneditor.cpp \
+    src/ui/mapwidget.cpp \
     src/comm/udplink.cpp \
     src/comm/linkmanager.cpp \
     src/comm/mavlinkrouter.cpp \
@@ -37,6 +38,7 @@ HEADERS += \
     src/ui/mainwindow.h \
     src/ui/connectdialog.h \
     src/ui/missioneditor.h \
+    src/ui/mapwidget.h \
     src/comm/linkinterface.h \
     src/comm/udplink.h \
     src/comm/linkmanager.h \

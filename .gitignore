@@ -75,3 +75,9 @@ test_*.exe
 tests.exe
 tests/Makefile*
 tests/.qmake*
+
+# Map tile cache (downloaded on-demand from OpenStreetMap)
+MapCache/
+
+# Planning documents (temporary)
+PHASE4_PLAN.md

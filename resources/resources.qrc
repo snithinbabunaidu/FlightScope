@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/">
         <file>qml/PrimaryFlightDisplay.qml</file>
+        <file>qml/MapView.qml</file>
     </qresource>
     <qresource prefix="/styles">
     </qresource>
