@@ -1,0 +1,273 @@
+/* FlightScope Modern UI Theme - Corrected */
+
+/* ========================================
+   COLOR PALETTE:
+   Primary Dark: #3B1E54
+   Primary Medium: #9B7EBD
+   Primary Light: #D4BEE4
+   Neutral/Background: #EEEEEE
+   --- Accent Colors ---
+   Green: #4CAF50
+   Red: #F44336
+   Blue: #2196F3
+   Orange: #FFC107
+   Grey: #9E9E9E
+   ======================================== */
+
+/* Global Styles */
+QWidget {
+    background-color: #EEEEEE;
+    font-family: "Roboto", "Segoe UI", sans-serif;
+    font-size: 10pt;
+    color: #3B1E54; /* Default text color */
+}
+
+QMainWindow {
+    background-color: #EEEEEE;
+}
+
+/* Menu Bar */
+QMenuBar {
+    background-color: #3B1E54;
+    color: white;
+    padding: 6px;
+    font-weight: 500;
+}
+QMenuBar::item {
+    background-color: transparent;
+    padding: 8px 16px;
+    border-radius: 6px;
+}
+QMenuBar::item:selected { background-color: #9B7EBD; }
+QMenuBar::item:pressed { background-color: #D4BEE4; color: #3B1E54; }
+
+/* Menu Dropdown */
+QMenu {
+    background-color: white;
+    border: 1px solid #D4BEE4;
+    border-radius: 8px;
+    padding: 8px;
+}
+QMenu::item {
+    padding: 8px 28px;
+    border-radius: 4px;
+    color: #3B1E54;
+}
+QMenu::item:selected { background-color: #D4BEE4; }
+
+/* Main Toolbar */
+QToolBar {
+    background-color: #FFFFFF;
+    border: none;
+    border-bottom: 1px solid #D4BEE4;
+    spacing: 8px;
+    padding: 8px;
+}
+
+/* ========================================
+   UNIFIED LINE BUTTON STYLES
+   - Modern transparent buttons with purple outlines
+   - Smooth transitions on hover and press
+   - Color indicators via 3px bottom border on toolbar buttons
+   ======================================== */
+
+/* --- Base Style for ALL Buttons --- */
+QToolButton, QPushButton {
+    background-color: transparent;
+    color: #3B1E54;
+    border: 1px solid #3B1E54;
+    border-radius: 6px;
+    padding: 4px 12px;
+    font-size: 10pt;
+    font-weight: 600;
+    min-width: 80px;
+}
+
+QToolButton:hover, QPushButton:hover {
+    background-color: #D4BEE4;
+}
+
+QToolButton:pressed, QPushButton:pressed {
+    background-color: #9B7EBD;
+    color: white;
+    border-color: #9B7EBD;
+}
+
+QToolButton:disabled, QPushButton:disabled {
+    background-color: transparent;
+    color: #BDBDBD;
+    border-color: #BDBDBD;
+}
+
+/* --- Color Indicators for Top Action Buttons --- */
+/* A 3px bottom border is used as the color indicator */
+QToolButton#connectButton    { border-bottom: 3px solid #4CAF50; }
+QToolButton#disconnectButton { border-bottom: 3px solid #F44336; }
+QToolButton#guidedButton     { border-bottom: 3px solid #9B7EBD; }
+QToolButton#autoButton       { border-bottom: 3px solid #673AB7; }
+QToolButton#armButton        { border-bottom: 3px solid #2196F3; }
+QToolButton#disarmButton     { border-bottom: 3px solid #9E9E9E; }
+QToolButton#takeoffButton    { border-bottom: 3px solid #AB9ACC; }
+QToolButton#landButton       { border-bottom: 3px solid #81C784; }
+QToolButton#rtlButton        { border-bottom: 3px solid #FFC107; }
+QToolButton#startMissionButton { border-bottom: 3px solid #BA68C8; }
+
+/* Mission Editor Buttons (Use the default line style) */
+QPushButton#missionButton {
+    /* Inherits the base QPushButton style */
+}
+
+/* Status Bar */
+QStatusBar {
+    background-color: #F9F9F9;
+    border-top: 1px solid #D4BEE4;
+    padding: 4px;
+}
+QStatusBar QLabel {
+    background-color: transparent;
+    padding: 6px 12px;
+    margin: 2px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* ========================================
+   BORDERLESS WIDGETS (CORRECTED)
+   - QGroupBox and QDockWidget are styled to have no visible container borders.
+   ======================================== */
+   
+/* Dock Widgets (Telemetry, System Health, etc.) */
+QDockWidget {
+    border: none; /* No border on the widget itself */
+}
+
+QDockWidget::title {
+    background-color: #3B1E54;
+    color: white; /* White text for contrast */
+    padding: 8px; /* Reduced padding */
+    border-radius: 0;
+    font-weight: bold;
+    font-size: 11pt;
+}
+
+/* This is the key part: it ensures the content area of the dock has no border */
+QDockWidget > QWidget {
+    border: none;
+    background-color: #EEEEEE;
+}
+
+/* Group Box - Also ensures no border for contained widgets */
+QGroupBox {
+    background-color: transparent;
+    border: none;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+/* Hides the default title frame */
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0 4px;
+}
+
+/* ========================================
+   MISSION EDITOR TABLE - LIGHT THEME
+   - Clean white background with light purple alternating rows
+   - Dark purple header maintained for contrast
+   - Transparent gridlines for seamless appearance
+   ======================================== */
+
+QTableWidget {
+    background-color: white;
+    alternate-background-color: #F8F6FA; /* Very light purple */
+    border: 1px solid #D4BEE4;
+    border-radius: 8px;
+    gridline-color: transparent; /* Removed gridlines */
+    color: #3B1E54; /* Dark purple text */
+}
+
+QTableWidget::item {
+    padding: 4px 8px; /* Reduced padding */
+    border: none; /* No borders between items */
+}
+
+QTableWidget::item:selected {
+    background-color: #9B7EBD;
+    color: white;
+}
+
+QTableWidget::item:hover {
+    background-color: rgba(155, 126, 189, 0.2);
+}
+
+QHeaderView::section {
+    background-color: #3B1E54; /* Dark purple header */
+    color: white;
+    padding: 6px 8px; /* Reduced padding */
+    border: none; /* No borders */
+    border-bottom: 2px solid #9B7EBD;
+    font-weight: bold;
+    font-size: 10pt;
+}
+
+QHeaderView::section:first { border-top-left-radius: 8px; }
+QHeaderView::section:last { border-top-right-radius: 8px; }
+
+/* Table Cell Editor - Seamless Integration */
+QTableWidget QLineEdit {
+    background-color: white;
+    border: none;
+    padding: 0px;
+    margin: 0px;
+    color: #3B1E54;
+}
+
+QTableWidget QLineEdit:focus {
+    border: 1px solid #9B7EBD;
+}
+
+
+/* ========================================
+   OTHER WIDGETS (Standardized)
+   ======================================== */
+
+/* Line Edit, Spin Box, Combo Box */
+QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    background-color: white;
+    border: 1px solid #D4BEE4;
+    border-radius: 6px;
+    padding: 6px 10px;
+    color: #3B1E54;
+}
+QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
+    border: 2px solid #9B7EBD;
+}
+
+/* Scroll Bar */
+QScrollBar:vertical {
+    background-color: #E0E0E0;
+    width: 12px;
+    border-radius: 6px;
+    margin: 0px;
+}
+QScrollBar::handle:vertical {
+    background-color: #9B7EBD;
+    border-radius: 6px;
+    min-height: 25px;
+}
+QScrollBar::handle:vertical:hover { background-color: #7B5E9D; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
+
+QScrollBar:horizontal {
+    background-color: #E0E0E0;
+    height: 12px;
+    border-radius: 6px;
+    margin: 0px;
+}
+QScrollBar::handle:horizontal {
+    background-color: #9B7EBD;
+    border-radius: 6px;
+    min-width: 25px;
+}
+QScrollBar::handle:horizontal:hover { background-color: #7B5E9D; }
+QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; }
