@@ -482,8 +482,8 @@ void MainWindow::updateTelemetryDisplay() {
     if (m_telemetryWidget && m_vehicleModel) {
         // Find the telemetry data widget (it's nested in the layout)
         auto* mainLayout = qobject_cast<QVBoxLayout*>(m_telemetryWidget->layout());
-        if (mainLayout && mainLayout->count() >= 3) {
-            QWidget* telemetryDataWidget = qobject_cast<QWidget*>(mainLayout->itemAt(2)->widget());
+        if (mainLayout && mainLayout->count() >= 1) {
+            QWidget* telemetryDataWidget = qobject_cast<QWidget*>(mainLayout->itemAt(0)->widget());
             if (telemetryDataWidget) {
                 auto* layout = qobject_cast<QFormLayout*>(telemetryDataWidget->layout());
                 if (layout) {
