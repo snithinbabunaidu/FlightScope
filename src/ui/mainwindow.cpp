@@ -17,9 +17,9 @@ MainWindow::MainWindow(QWidget* parent)
       m_gpsStatusLabel(nullptr), m_batteryStatusLabel(nullptr), m_modeStatusLabel(nullptr),
       m_linkStatsLabel(nullptr), m_linkManager(nullptr), m_mavlinkRouter(nullptr),
       m_commandBus(nullptr), m_vehicleModel(nullptr), m_healthModel(nullptr),
-      m_missionModel(nullptr), m_telemetryDock(nullptr), m_healthDock(nullptr),
-      m_missionDock(nullptr), m_telemetryWidget(nullptr), m_healthWidget(nullptr),
-      m_missionEditor(nullptr), m_mapWidget(nullptr),
+      m_missionModel(nullptr), m_telemetryDock(nullptr), m_hudDock(nullptr),
+      m_healthDock(nullptr), m_missionDock(nullptr), m_telemetryWidget(nullptr),
+      m_hudWidget(nullptr), m_healthWidget(nullptr), m_missionEditor(nullptr), m_mapWidget(nullptr),
       m_disconnectAction(nullptr), m_disconnectToolAction(nullptr), m_updateTimer(nullptr) {
     ui->setupUi(this);
 
@@ -257,6 +257,18 @@ void MainWindow::setupDockWidgets() {
     m_telemetryDock->setWidget(m_telemetryWidget);
     addDockWidget(Qt::RightDockWidgetArea, m_telemetryDock);
 
+    // HUD Dock (between Telemetry and Health)
+    m_hudDock = new QDockWidget(tr("HUD"), this);
+
+    // Force white text on dock title bar
+    QPalette hudPalette = m_hudDock->palette();
+    hudPalette.setColor(QPalette::WindowText, Qt::white);
+    m_hudDock->setPalette(hudPalette);
+
+    m_hudWidget = new HudWidget(this);
+    m_hudDock->setWidget(m_hudWidget);
+    addDockWidget(Qt::RightDockWidgetArea, m_hudDock);
+
     // Health Dock
     m_healthDock = new QDockWidget(tr("System Health"), this);
 
@@ -402,7 +414,15 @@ void MainWindow::onReconnecting(int attemptNumber, int delayMs) {
 }
 
 void MainWindow::updateTelemetryDisplay() {
-    // Compass widget removed - now on map
+    // Update HUD widget
+    if (m_hudWidget && m_vehicleModel) {
+        m_hudWidget->setAltitude(m_vehicleModel->relativeAltitude());
+        m_hudWidget->setHeading(m_vehicleModel->heading());
+        m_hudWidget->setGroundSpeed(m_vehicleModel->groundSpeed());
+        // VehicleModel already stores pitch/roll in DEGREES (converted in handleAttitude)
+        m_hudWidget->setPitch(m_vehicleModel->pitch());
+        m_hudWidget->setRoll(m_vehicleModel->roll());
+    }
 
     // Update status bar widgets
     if (m_vehicleModel && m_healthModel) {

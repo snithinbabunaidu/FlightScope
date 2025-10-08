@@ -16,6 +16,7 @@
 #include "../models/missionmodel.h"
 #include "missioneditor.h"
 #include "mapwidget.h"
+#include "hudwidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -80,9 +81,11 @@ private:
 
     // UI components
     QDockWidget* m_telemetryDock;
+    QDockWidget* m_hudDock;
     QDockWidget* m_healthDock;
     QDockWidget* m_missionDock;
     QWidget* m_telemetryWidget;
+    HudWidget* m_hudWidget;
     QWidget* m_healthWidget;
     MissionEditor* m_missionEditor;
     MapWidget* m_mapWidget;

@@ -25,6 +25,7 @@ SOURCES += \
     src/ui/missioneditor.cpp \
     src/ui/mapwidget.cpp \
     src/ui/compasswidget.cpp \
+    src/ui/hudwidget.cpp \
     src/comm/udplink.cpp \
     src/comm/linkmanager.cpp \
     src/comm/mavlinkrouter.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     src/ui/missioneditor.h \
     src/ui/mapwidget.h \
     src/ui/compasswidget.h \
+    src/ui/hudwidget.h \
     src/comm/linkinterface.h \
     src/comm/udplink.h \
     src/comm/linkmanager.h \
