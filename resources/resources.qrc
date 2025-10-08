@@ -4,7 +4,9 @@
         <file>qml/MapView.qml</file>
     </qresource>
     <qresource prefix="/styles">
+        <file>styles/material.qss</file>
     </qresource>
     <qresource prefix="/images">
+        <file>images/drone.svg</file>
     </qresource>
 </RCC>

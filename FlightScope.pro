@@ -24,6 +24,7 @@ SOURCES += \
     src/ui/connectdialog.cpp \
     src/ui/missioneditor.cpp \
     src/ui/mapwidget.cpp \
+    src/ui/compasswidget.cpp \
     src/comm/udplink.cpp \
     src/comm/linkmanager.cpp \
     src/comm/mavlinkrouter.cpp \
@@ -39,6 +40,7 @@ HEADERS += \
     src/ui/connectdialog.h \
     src/ui/missioneditor.h \
     src/ui/mapwidget.h \
+    src/ui/compasswidget.h \
     src/comm/linkinterface.h \
     src/comm/udplink.h \
     src/comm/linkmanager.h \

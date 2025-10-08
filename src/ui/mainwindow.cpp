@@ -9,16 +9,27 @@
 #include <QGridLayout>
 #include <QGroupBox>
 #include <QFormLayout>
+#include <QFile>
+#include <QFrame>
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_connectionStatusLabel(nullptr),
+      m_gpsStatusLabel(nullptr), m_batteryStatusLabel(nullptr), m_modeStatusLabel(nullptr),
       m_linkStatsLabel(nullptr), m_linkManager(nullptr), m_mavlinkRouter(nullptr),
       m_commandBus(nullptr), m_vehicleModel(nullptr), m_healthModel(nullptr),
       m_missionModel(nullptr), m_telemetryDock(nullptr), m_healthDock(nullptr),
       m_missionDock(nullptr), m_telemetryWidget(nullptr), m_healthWidget(nullptr),
-      m_missionEditor(nullptr), m_mapWidget(nullptr), m_disconnectAction(nullptr),
-      m_disconnectToolAction(nullptr), m_updateTimer(nullptr) {
+      m_missionEditor(nullptr), m_mapWidget(nullptr), m_compassWidget(nullptr),
+      m_disconnectAction(nullptr), m_disconnectToolAction(nullptr), m_updateTimer(nullptr) {
     ui->setupUi(this);
+
+    // Load Material Design stylesheet
+    QFile styleFile(":/styles/styles/material.qss");
+    if (styleFile.open(QFile::ReadOnly)) {
+        QString styleSheet = QLatin1String(styleFile.readAll());
+        qApp->setStyleSheet(styleSheet);
+        styleFile.close();
+    }
 
     // Create core components
     m_linkManager = new LinkManager(this);
@@ -101,11 +112,17 @@ void MainWindow::setupToolbars() {
     QAction* connectToolAction = new QAction(tr("Connect"), this);
     connect(connectToolAction, &QAction::triggered, this, &MainWindow::onConnectTriggered);
     mainToolbar->addAction(connectToolAction);
+    // Apply color styling to connect button
+    QWidget* connectButton = mainToolbar->widgetForAction(connectToolAction);
+    if (connectButton) connectButton->setObjectName("connectButton");
 
     m_disconnectToolAction = new QAction(tr("Disconnect"), this);
     m_disconnectToolAction->setEnabled(false);
     connect(m_disconnectToolAction, &QAction::triggered, this, &MainWindow::onDisconnectTriggered);
     mainToolbar->addAction(m_disconnectToolAction);
+    // Apply color styling to disconnect button
+    QWidget* disconnectButton = mainToolbar->widgetForAction(m_disconnectToolAction);
+    if (disconnectButton) disconnectButton->setObjectName("disconnectButton");
 
     mainToolbar->addSeparator();
 
@@ -117,11 +134,15 @@ void MainWindow::setupToolbars() {
     m_guidedAction->setEnabled(false);
     connect(m_guidedAction, &QAction::triggered, this, &MainWindow::onGuidedTriggered);
     flightToolbar->addAction(m_guidedAction);
+    QWidget* guidedButton = flightToolbar->widgetForAction(m_guidedAction);
+    if (guidedButton) guidedButton->setObjectName("guidedButton");
 
     m_autoAction = new QAction(tr("Auto Mode"), this);
     m_autoAction->setEnabled(false);
     connect(m_autoAction, &QAction::triggered, this, &MainWindow::onAutoTriggered);
     flightToolbar->addAction(m_autoAction);
+    QWidget* autoButton = flightToolbar->widgetForAction(m_autoAction);
+    if (autoButton) autoButton->setObjectName("autoButton");
 
     flightToolbar->addSeparator();
 
@@ -129,11 +150,15 @@ void MainWindow::setupToolbars() {
     m_armAction->setEnabled(false);
     connect(m_armAction, &QAction::triggered, this, &MainWindow::onArmTriggered);
     flightToolbar->addAction(m_armAction);
+    QWidget* armButton = flightToolbar->widgetForAction(m_armAction);
+    if (armButton) armButton->setObjectName("armButton");
 
     m_disarmAction = new QAction(tr("Disarm"), this);
     m_disarmAction->setEnabled(false);
     connect(m_disarmAction, &QAction::triggered, this, &MainWindow::onDisarmTriggered);
     flightToolbar->addAction(m_disarmAction);
+    QWidget* disarmButton = flightToolbar->widgetForAction(m_disarmAction);
+    if (disarmButton) disarmButton->setObjectName("disarmButton");
 
     flightToolbar->addSeparator();
 
@@ -141,16 +166,22 @@ void MainWindow::setupToolbars() {
     m_takeoffAction->setEnabled(false);
     connect(m_takeoffAction, &QAction::triggered, this, &MainWindow::onTakeoffTriggered);
     flightToolbar->addAction(m_takeoffAction);
+    QWidget* takeoffButton = flightToolbar->widgetForAction(m_takeoffAction);
+    if (takeoffButton) takeoffButton->setObjectName("takeoffButton");
 
     m_landAction = new QAction(tr("Land"), this);
     m_landAction->setEnabled(false);
     connect(m_landAction, &QAction::triggered, this, &MainWindow::onLandTriggered);
     flightToolbar->addAction(m_landAction);
+    QWidget* landButton = flightToolbar->widgetForAction(m_landAction);
+    if (landButton) landButton->setObjectName("landButton");
 
     m_rtlAction = new QAction(tr("RTL"), this);
     m_rtlAction->setEnabled(false);
     connect(m_rtlAction, &QAction::triggered, this, &MainWindow::onRtlTriggered);
     flightToolbar->addAction(m_rtlAction);
+    QWidget* rtlButton = flightToolbar->widgetForAction(m_rtlAction);
+    if (rtlButton) rtlButton->setObjectName("rtlButton");
 
     flightToolbar->addSeparator();
 
@@ -158,17 +189,41 @@ void MainWindow::setupToolbars() {
     m_startMissionAction->setEnabled(false);
     connect(m_startMissionAction, &QAction::triggered, this, &MainWindow::onStartMissionTriggered);
     flightToolbar->addAction(m_startMissionAction);
+    QWidget* startMissionButton = flightToolbar->widgetForAction(m_startMissionAction);
+    if (startMissionButton) startMissionButton->setObjectName("startMissionButton");
 }
 
 void MainWindow::setupStatusBar() {
+    // Connection status
     m_connectionStatusLabel = new QLabel(tr("Not Connected"), this);
     m_connectionStatusLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    m_connectionStatusLabel->setMinimumWidth(100);
     statusBar()->addPermanentWidget(m_connectionStatusLabel);
-    
-    m_linkStatsLabel = new QLabel(tr("No Link Stats"), this);
+
+    // GPS status (fix type, satellites, HDOP)
+    m_gpsStatusLabel = new QLabel(tr("GPS: No Fix | Sats: 0"), this);
+    m_gpsStatusLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    m_gpsStatusLabel->setMinimumWidth(180);
+    statusBar()->addPermanentWidget(m_gpsStatusLabel);
+
+    // Battery status
+    m_batteryStatusLabel = new QLabel(tr("Battery: -- V"), this);
+    m_batteryStatusLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    m_batteryStatusLabel->setMinimumWidth(130);
+    statusBar()->addPermanentWidget(m_batteryStatusLabel);
+
+    // Flight mode
+    m_modeStatusLabel = new QLabel(tr("Mode: Unknown"), this);
+    m_modeStatusLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    m_modeStatusLabel->setMinimumWidth(120);
+    statusBar()->addPermanentWidget(m_modeStatusLabel);
+
+    // Link statistics (RTT, packet loss, last message time)
+    m_linkStatsLabel = new QLabel(tr("Link: Disconnected"), this);
     m_linkStatsLabel->setFrameStyle(QFrame::Panel | QFrame::Sunken);
+    m_linkStatsLabel->setMinimumWidth(200);
     statusBar()->addPermanentWidget(m_linkStatsLabel);
-    
+
     statusBar()->showMessage(tr("Ready"));
 }
 
@@ -176,13 +231,30 @@ void MainWindow::setupDockWidgets() {
     // Telemetry Dock
     m_telemetryDock = new QDockWidget(tr("Telemetry"), this);
     m_telemetryWidget = new QWidget();
-    auto* telemetryLayout = new QFormLayout(m_telemetryWidget);
+    auto* telemetryMainLayout = new QVBoxLayout(m_telemetryWidget);
+
+    // Add compass widget at top
+    m_compassWidget = new CompassWidget(m_telemetryWidget);
+    telemetryMainLayout->addWidget(m_compassWidget, 0, Qt::AlignCenter);
+
+    // Add separator line
+    QFrame* separator = new QFrame();
+    separator->setFrameShape(QFrame::HLine);
+    separator->setFrameShadow(QFrame::Sunken);
+    telemetryMainLayout->addWidget(separator);
+
+    // Telemetry data
+    QWidget* telemetryDataWidget = new QWidget();
+    auto* telemetryLayout = new QFormLayout(telemetryDataWidget);
 
     telemetryLayout->addRow(tr("Armed:"), new QLabel("Unknown"));
     telemetryLayout->addRow(tr("Flight Mode:"), new QLabel("Unknown"));
     telemetryLayout->addRow(tr("Altitude:"), new QLabel("0.0 m"));
     telemetryLayout->addRow(tr("Ground Speed:"), new QLabel("0.0 m/s"));
     telemetryLayout->addRow(tr("Battery:"), new QLabel("0.0 V"));
+
+    telemetryMainLayout->addWidget(telemetryDataWidget);
+    telemetryMainLayout->addStretch();
 
     m_telemetryDock->setWidget(m_telemetryWidget);
     addDockWidget(Qt::RightDockWidgetArea, m_telemetryDock);
@@ -320,31 +392,97 @@ void MainWindow::onReconnecting(int attemptNumber, int delayMs) {
 }
 
 void MainWindow::updateTelemetryDisplay() {
+    // Update compass widget
+    if (m_compassWidget && m_vehicleModel) {
+        m_compassWidget->setHeading(m_vehicleModel->heading());
+    }
+
+    // Update status bar widgets
+    if (m_vehicleModel && m_healthModel) {
+        // GPS Status
+        QString gpsFixType = m_healthModel->gpsFixType();
+        int satCount = m_healthModel->satelliteCount();
+        double hdop = m_healthModel->gpsHdop();
+
+        QString gpsColor = "#F44336";  // Red for no fix
+        if (gpsFixType == "3D Fix") {
+            gpsColor = "#4CAF50";  // Green for 3D fix
+        } else if (gpsFixType == "2D Fix") {
+            gpsColor = "#FF9800";  // Orange for 2D fix
+        }
+
+        m_gpsStatusLabel->setText(QString("GPS: %1 | Sats: %2 | HDOP: %3")
+                                      .arg(gpsFixType)
+                                      .arg(satCount)
+                                      .arg(hdop, 0, 'f', 1));
+        m_gpsStatusLabel->setStyleSheet(QString("QLabel { background-color: %1; color: white; }").arg(gpsColor));
+
+        // Battery Status
+        double voltage = m_vehicleModel->batteryVoltage();
+        int remaining = m_vehicleModel->batteryRemaining();
+
+        QString batteryColor = "#4CAF50";  // Green
+        if (remaining < 20) {
+            batteryColor = "#F44336";  // Red
+        } else if (remaining < 40) {
+            batteryColor = "#FF9800";  // Orange
+        }
+
+        m_batteryStatusLabel->setText(QString("Battery: %1V (%2%)")
+                                          .arg(voltage, 0, 'f', 1)
+                                          .arg(remaining));
+        m_batteryStatusLabel->setStyleSheet(QString("QLabel { background-color: %1; color: white; }").arg(batteryColor));
+
+        // Mode Status
+        QString flightMode = m_vehicleModel->flightMode();
+        QString modeColor = "#2196F3";  // Blue default
+
+        if (flightMode == "GUIDED") {
+            modeColor = "#00796B";  // Teal
+        } else if (flightMode == "AUTO") {
+            modeColor = "#512DA8";  // Purple
+        } else if (flightMode == "RTL") {
+            modeColor = "#FFC107";  // Amber
+        } else if (flightMode == "LAND") {
+            modeColor = "#4CAF50";  // Green
+        }
+
+        m_modeStatusLabel->setText(QString("Mode: %1").arg(flightMode));
+        m_modeStatusLabel->setStyleSheet(QString("QLabel { background-color: %1; color: white; }").arg(modeColor));
+    }
+
     // Update telemetry labels
     if (m_telemetryWidget && m_vehicleModel) {
-        auto* layout = qobject_cast<QFormLayout*>(m_telemetryWidget->layout());
-        if (layout) {
-            // Update Armed status
-            qobject_cast<QLabel*>(layout->itemAt(0, QFormLayout::FieldRole)->widget())
-                ->setText(m_vehicleModel->armed() ? tr("ARMED") : tr("Disarmed"));
+        // Find the telemetry data widget (it's nested in the layout)
+        auto* mainLayout = qobject_cast<QVBoxLayout*>(m_telemetryWidget->layout());
+        if (mainLayout && mainLayout->count() >= 3) {
+            QWidget* telemetryDataWidget = qobject_cast<QWidget*>(mainLayout->itemAt(2)->widget());
+            if (telemetryDataWidget) {
+                auto* layout = qobject_cast<QFormLayout*>(telemetryDataWidget->layout());
+                if (layout) {
+                    // Update Armed status
+                    qobject_cast<QLabel*>(layout->itemAt(0, QFormLayout::FieldRole)->widget())
+                        ->setText(m_vehicleModel->armed() ? tr("ARMED") : tr("Disarmed"));
 
-            // Update Flight Mode
-            qobject_cast<QLabel*>(layout->itemAt(1, QFormLayout::FieldRole)->widget())
-                ->setText(m_vehicleModel->flightMode());
+                    // Update Flight Mode
+                    qobject_cast<QLabel*>(layout->itemAt(1, QFormLayout::FieldRole)->widget())
+                        ->setText(m_vehicleModel->flightMode());
 
-            // Update Altitude
-            qobject_cast<QLabel*>(layout->itemAt(2, QFormLayout::FieldRole)->widget())
-                ->setText(QString("%1 m").arg(m_vehicleModel->relativeAltitude(), 0, 'f', 1));
+                    // Update Altitude
+                    qobject_cast<QLabel*>(layout->itemAt(2, QFormLayout::FieldRole)->widget())
+                        ->setText(QString("%1 m").arg(m_vehicleModel->relativeAltitude(), 0, 'f', 1));
 
-            // Update Ground Speed
-            qobject_cast<QLabel*>(layout->itemAt(3, QFormLayout::FieldRole)->widget())
-                ->setText(QString("%1 m/s").arg(m_vehicleModel->groundSpeed(), 0, 'f', 1));
+                    // Update Ground Speed
+                    qobject_cast<QLabel*>(layout->itemAt(3, QFormLayout::FieldRole)->widget())
+                        ->setText(QString("%1 m/s").arg(m_vehicleModel->groundSpeed(), 0, 'f', 1));
 
-            // Update Battery
-            qobject_cast<QLabel*>(layout->itemAt(4, QFormLayout::FieldRole)->widget())
-                ->setText(QString("%1 V (%2%)")
-                              .arg(m_vehicleModel->batteryVoltage(), 0, 'f', 1)
-                              .arg(m_vehicleModel->batteryRemaining()));
+                    // Update Battery
+                    qobject_cast<QLabel*>(layout->itemAt(4, QFormLayout::FieldRole)->widget())
+                        ->setText(QString("%1 V (%2%)")
+                                      .arg(m_vehicleModel->batteryVoltage(), 0, 'f', 1)
+                                      .arg(m_vehicleModel->batteryRemaining()));
+                }
+            }
         }
     }
 

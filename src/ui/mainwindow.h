@@ -16,6 +16,7 @@
 #include "../models/missionmodel.h"
 #include "missioneditor.h"
 #include "mapwidget.h"
+#include "compasswidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -65,6 +66,9 @@ private:
 
     // Status bar widgets
     QLabel* m_connectionStatusLabel;
+    QLabel* m_gpsStatusLabel;
+    QLabel* m_batteryStatusLabel;
+    QLabel* m_modeStatusLabel;
     QLabel* m_linkStatsLabel;
 
     // Core components
@@ -83,6 +87,7 @@ private:
     QWidget* m_healthWidget;
     MissionEditor* m_missionEditor;
     MapWidget* m_mapWidget;
+    CompassWidget* m_compassWidget;
 
     QAction* m_disconnectAction;
     QAction* m_disconnectToolAction;

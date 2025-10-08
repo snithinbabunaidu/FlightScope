@@ -50,10 +50,19 @@ void MissionEditor::setupUi() {
     // Toolbar
     QHBoxLayout* toolbarLayout = new QHBoxLayout();
     m_addButton = new QPushButton("Add Waypoint", this);
+    m_addButton->setObjectName("missionButton");
+
     m_removeButton = new QPushButton("Remove", this);
+    m_removeButton->setObjectName("missionButton");
+
     m_clearButton = new QPushButton("Clear All", this);
+    m_clearButton->setObjectName("missionButton");
+
     m_uploadButton = new QPushButton("Upload to Vehicle", this);
+    m_uploadButton->setObjectName("missionButton");
+
     m_downloadButton = new QPushButton("Download from Vehicle", this);
+    m_downloadButton->setObjectName("missionButton");
 
     toolbarLayout->addWidget(m_addButton);
     toolbarLayout->addWidget(m_removeButton);
@@ -64,7 +73,7 @@ void MissionEditor::setupUi() {
 
     mainLayout->addLayout(toolbarLayout);
 
-    // Table
+    // Table - Enable alternating row colors
     m_tableWidget = new QTableWidget(this);
     m_tableWidget->setColumnCount(6);
     m_tableWidget->setHorizontalHeaderLabels(
@@ -72,6 +81,7 @@ void MissionEditor::setupUi() {
     m_tableWidget->horizontalHeader()->setStretchLastSection(true);
     m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+    m_tableWidget->setAlternatingRowColors(true);  // Enable alternating row colors
 
     mainLayout->addWidget(m_tableWidget);
 
