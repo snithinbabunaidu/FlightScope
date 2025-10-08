@@ -832,6 +832,24 @@ void MainWindow::onUploadGeofenceTriggered() {
 }
 
 void MainWindow::onClearGeofenceTriggered() {
+    // Send FENCE_ENABLE = 0 to disable the fence on the drone
+    mavlink_message_t msg;
+    mavlink_param_set_t paramSet{};
+
+    paramSet.target_system = m_vehicleModel->systemId();
+    paramSet.target_component = m_vehicleModel->componentId();
+    strcpy(paramSet.param_id, "FENCE_ENABLE");
+    paramSet.param_value = 0.0f;  // Disable fence
+    paramSet.param_type = MAV_PARAM_TYPE_REAL32;
+
+    mavlink_msg_param_set_encode(255, 190, &msg, &paramSet);
+    m_mavlinkRouter->sendMessage(msg);
+
+    qInfo() << "MainWindow: Disabled FENCE_ENABLE parameter";
+
+    // Clear local geofence model
     m_geofenceModel->clearGeofence();
-    statusBar()->showMessage(tr("Geofence cleared"), 2000);
+    m_geofenceModel->setActive(false);
+
+    statusBar()->showMessage(tr("Geofence cleared and DISABLED on vehicle"), 3000);
 }
