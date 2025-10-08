@@ -1,6 +1,7 @@
 #include "mapwidget.h"
 #include "../models/vehiclemodel.h"
 #include "../models/missionmodel.h"
+#include "../models/geofencemodel.h"
 #include "../models/waypoint.h"
 #include <QQmlContext>
 #include <QQmlEngine>
@@ -11,7 +12,9 @@ MapWidget::MapWidget(QWidget* parent)
     : QQuickWidget(parent)
     , m_vehicleModel(nullptr)
     , m_missionModel(nullptr)
+    , m_geofenceModel(nullptr)
     , m_followVehicle(false)
+    , m_geofenceMode(false)
     , m_homePosition(-35.3632, 149.1654) // Canberra, SITL default
 {
     qDebug() << "MapWidget: Initializing...";
@@ -46,6 +49,7 @@ void MapWidget::setupQmlContext() {
     if (context) {
         context->setContextProperty("mapWidget", this);
         context->setContextProperty("followVehicle", m_followVehicle);
+        context->setContextProperty("geofenceMode", m_geofenceMode);
     }
 }
 
@@ -251,6 +255,110 @@ void MapWidget::updateWaypoint(int index, double lat, double lon, double alt) {
     if (rootItem) {
         QMetaObject::invokeMethod(rootItem, "updateWaypointMarker",
                                  Q_ARG(QVariant, QVariant::fromValue(wpData)));
+    }
+}
+
+void MapWidget::setGeofenceModel(GeofenceModel* model) {
+    if (m_geofenceModel == model) {
+        return;
+    }
+
+    // Disconnect old model
+    if (m_geofenceModel) {
+        disconnect(m_geofenceModel, nullptr, this, nullptr);
+    }
+
+    m_geofenceModel = model;
+
+    if (m_geofenceModel) {
+        connectGeofenceSignals();
+        updateGeofence();
+    }
+}
+
+void MapWidget::connectGeofenceSignals() {
+    if (!m_geofenceModel) {
+        return;
+    }
+
+    // Connect to geofence model signals
+    connect(m_geofenceModel, &GeofenceModel::vertexAdded,
+            this, [this]() { updateGeofence(); });
+    connect(m_geofenceModel, &GeofenceModel::vertexRemoved,
+            this, [this]() { updateGeofence(); });
+    connect(m_geofenceModel, &GeofenceModel::vertexUpdated,
+            this, [this]() { updateGeofence(); });
+    connect(m_geofenceModel, &GeofenceModel::geofenceCleared,
+            this, [this]() { updateGeofence(); });
+    connect(m_geofenceModel, &GeofenceModel::geofenceLoaded,
+            this, [this]() { updateGeofence(); });
+}
+
+void MapWidget::setGeofenceMode(bool enabled) {
+    if (m_geofenceMode == enabled) {
+        return;
+    }
+
+    m_geofenceMode = enabled;
+
+    // Update QML context
+    QQmlContext* context = rootContext();
+    if (context) {
+        context->setContextProperty("geofenceMode", m_geofenceMode);
+    }
+
+    emit geofenceModeChanged(m_geofenceMode);
+    qDebug() << "MapWidget: Geofence mode" << (m_geofenceMode ? "enabled" : "disabled");
+}
+
+void MapWidget::updateGeofence() {
+    if (!m_geofenceModel) {
+        return;
+    }
+
+    QVariantList vertices;
+    for (int i = 0; i < m_geofenceModel->count(); ++i) {
+        const QGeoCoordinate* coord = m_geofenceModel->vertexAt(i);
+        if (coord && coord->isValid()) {
+            QVariantMap vertexData;
+            vertexData["latitude"] = coord->latitude();
+            vertexData["longitude"] = coord->longitude();
+            vertices.append(vertexData);
+        }
+    }
+
+    QQuickItem* rootItem = rootObject();
+    if (rootItem) {
+        QMetaObject::invokeMethod(rootItem, "updateGeofence",
+                                 Q_ARG(QVariant, QVariant::fromValue(vertices)));
+    }
+}
+
+void MapWidget::addGeofenceVertex(int index, double lat, double lon) {
+    QVariantMap vertexData;
+    vertexData["index"] = index;
+    vertexData["latitude"] = lat;
+    vertexData["longitude"] = lon;
+
+    QQuickItem* rootItem = rootObject();
+    if (rootItem) {
+        QMetaObject::invokeMethod(rootItem, "addGeofenceVertex",
+                                 Q_ARG(QVariant, QVariant::fromValue(vertexData)));
+    }
+}
+
+void MapWidget::removeGeofenceVertex(int index) {
+    QQuickItem* rootItem = rootObject();
+    if (rootItem) {
+        QMetaObject::invokeMethod(rootItem, "removeGeofenceVertex",
+                                 Q_ARG(QVariant, index));
+    }
+}
+
+void MapWidget::clearGeofence() {
+    QQuickItem* rootItem = rootObject();
+    if (rootItem) {
+        QMetaObject::invokeMethod(rootItem, "clearGeofence");
     }
 }
 

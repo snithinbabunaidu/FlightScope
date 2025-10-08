@@ -112,6 +112,66 @@ Item {
             opacity: 0.8
         }
 
+        // Geofence polygon (semi-transparent yellow with solid border)
+        MapPolygon {
+            id: geofencePolygon
+            color: "#40FFD500"  // Semi-transparent yellow (40 = ~25% opacity)
+            border.width: 3
+            border.color: "#FFD500"  // Solid yellow border
+            opacity: 1.0
+            visible: geofencePolygon.path.length >= 3
+        }
+
+        // Geofence vertex markers
+        MapItemView {
+            id: geofenceVertexView
+            model: ListModel {
+                id: geofenceVertexModel
+            }
+
+            delegate: MapQuickItem {
+                coordinate: QtPositioning.coordinate(model.latitude, model.longitude)
+                anchorPoint.x: vertexIcon.width / 2
+                anchorPoint.y: vertexIcon.height / 2
+                zoomLevel: 0
+
+                sourceItem: Item {
+                    id: vertexIcon
+                    width: 30
+                    height: 30
+
+                    // Geofence vertex icon
+                    Image {
+                        anchors.centerIn: parent
+                        width: 30
+                        height: 30
+                        source: "qrc:/icons/icons/geofence-location.svg"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                    }
+
+                    // Vertex number badge
+                    Rectangle {
+                        anchors.centerIn: parent
+                        width: 16
+                        height: 16
+                        radius: 8
+                        color: "#FFD500"
+                        border.color: "#3B1E54"
+                        border.width: 1
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: model.index + 1
+                            color: "#3B1E54"
+                            font.bold: true
+                            font.pixelSize: 10
+                        }
+                    }
+                }
+            }
+        }
+
         // Waypoint markers (will be added dynamically)
         MapItemView {
             id: waypointView
@@ -554,5 +614,65 @@ Item {
             missionPathCoords.push(QtPositioning.coordinate(wp.latitude, wp.longitude));
         }
         missionPath.path = missionPathCoords;
+    }
+
+    // Geofence functions
+    function updateGeofence(vertices) {
+        var geofenceCoords = [];
+        geofenceVertexModel.clear();
+
+        for (var i = 0; i < vertices.length; i++) {
+            geofenceCoords.push(QtPositioning.coordinate(
+                vertices[i].latitude,
+                vertices[i].longitude
+            ));
+
+            // Add vertex marker
+            geofenceVertexModel.append({
+                "index": i,
+                "latitude": vertices[i].latitude,
+                "longitude": vertices[i].longitude
+            });
+        }
+        geofencePolygon.path = geofenceCoords;
+    }
+
+    function addGeofenceVertex(vertexData) {
+        var currentPath = geofencePolygon.path;
+        currentPath.push(QtPositioning.coordinate(
+            vertexData.latitude,
+            vertexData.longitude
+        ));
+        geofencePolygon.path = currentPath;
+
+        // Add vertex marker
+        geofenceVertexModel.append({
+            "index": geofenceVertexModel.count,
+            "latitude": vertexData.latitude,
+            "longitude": vertexData.longitude
+        });
+    }
+
+    function removeGeofenceVertex(index) {
+        var currentPath = geofencePolygon.path;
+        if (index >= 0 && index < currentPath.length) {
+            currentPath.splice(index, 1);
+            geofencePolygon.path = currentPath;
+
+            // Remove vertex marker
+            if (index < geofenceVertexModel.count) {
+                geofenceVertexModel.remove(index);
+
+                // Renumber remaining vertices
+                for (var i = index; i < geofenceVertexModel.count; i++) {
+                    geofenceVertexModel.set(i, {"index": i});
+                }
+            }
+        }
+    }
+
+    function clearGeofence() {
+        geofencePolygon.path = [];
+        geofenceVertexModel.clear();
     }
 }

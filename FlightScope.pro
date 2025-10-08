@@ -33,7 +33,8 @@ SOURCES += \
     src/models/vehiclemodel.cpp \
     src/models/healthmodel.cpp \
     src/models/waypoint.cpp \
-    src/models/missionmodel.cpp
+    src/models/missionmodel.cpp \
+    src/models/geofencemodel.cpp
 
 # Header files
 HEADERS += \
@@ -51,7 +52,8 @@ HEADERS += \
     src/models/vehiclemodel.h \
     src/models/healthmodel.h \
     src/models/waypoint.h \
-    src/models/missionmodel.h
+    src/models/missionmodel.h \
+    src/models/geofencemodel.h
 
 # Forms
 FORMS += \

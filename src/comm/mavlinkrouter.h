@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QByteArray>
 #include <QElapsedTimer>
-#include "mavlink/common/mavlink.h"
+#include "mavlink/ardupilotmega/mavlink.h"
 
 /**
  * @brief Parses and routes MAVLink messages

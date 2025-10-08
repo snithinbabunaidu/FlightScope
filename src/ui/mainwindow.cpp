@@ -17,7 +17,7 @@ MainWindow::MainWindow(QWidget* parent)
       m_gpsStatusLabel(nullptr), m_batteryStatusLabel(nullptr), m_modeStatusLabel(nullptr),
       m_linkStatsLabel(nullptr), m_linkManager(nullptr), m_mavlinkRouter(nullptr),
       m_commandBus(nullptr), m_vehicleModel(nullptr), m_healthModel(nullptr),
-      m_missionModel(nullptr), m_telemetryDock(nullptr), m_hudDock(nullptr),
+      m_missionModel(nullptr), m_geofenceModel(nullptr), m_telemetryDock(nullptr), m_hudDock(nullptr),
       m_healthDock(nullptr), m_missionDock(nullptr), m_telemetryWidget(nullptr),
       m_hudWidget(nullptr), m_healthWidget(nullptr), m_missionEditor(nullptr), m_mapWidget(nullptr),
       m_disconnectAction(nullptr), m_disconnectToolAction(nullptr), m_updateTimer(nullptr) {
@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget* parent)
     m_vehicleModel = new VehicleModel(this);
     m_healthModel = new HealthModel(this);
     m_missionModel = new MissionModel(this);
+    m_geofenceModel = new GeofenceModel(this);
     m_commandBus = new CommandBus(m_mavlinkRouter, m_vehicleModel, this);
     m_updateTimer = new QTimer(this);
 
@@ -70,6 +71,7 @@ void MainWindow::setupUi() {
     // Connect map to models
     m_mapWidget->setVehicleModel(m_vehicleModel);
     m_mapWidget->setMissionModel(m_missionModel);
+    m_mapWidget->setGeofenceModel(m_geofenceModel);
 }
 
 void MainWindow::setupMenus() {
@@ -191,6 +193,33 @@ void MainWindow::setupToolbars() {
     flightToolbar->addAction(m_startMissionAction);
     QWidget* startMissionButton = flightToolbar->widgetForAction(m_startMissionAction);
     if (startMissionButton) startMissionButton->setObjectName("startMissionButton");
+
+    flightToolbar->addSeparator();
+
+    // Geofence action (checkable toggle)
+    m_geofenceAction = new QAction(tr("Geofence"), this);
+    m_geofenceAction->setCheckable(true);
+    m_geofenceAction->setEnabled(true);
+    connect(m_geofenceAction, &QAction::toggled, this, &MainWindow::onGeofenceToggled);
+    flightToolbar->addAction(m_geofenceAction);
+    QWidget* geofenceButton = flightToolbar->widgetForAction(m_geofenceAction);
+    if (geofenceButton) geofenceButton->setObjectName("geofenceButton");
+
+    // Upload Geofence action
+    m_uploadGeofenceAction = new QAction(tr("Upload Fence"), this);
+    m_uploadGeofenceAction->setEnabled(false);
+    connect(m_uploadGeofenceAction, &QAction::triggered, this, &MainWindow::onUploadGeofenceTriggered);
+    flightToolbar->addAction(m_uploadGeofenceAction);
+    QWidget* uploadGeofenceButton = flightToolbar->widgetForAction(m_uploadGeofenceAction);
+    if (uploadGeofenceButton) uploadGeofenceButton->setObjectName("uploadGeofenceButton");
+
+    // Clear Geofence action
+    m_clearGeofenceAction = new QAction(tr("Clear Fence"), this);
+    m_clearGeofenceAction->setEnabled(true);
+    connect(m_clearGeofenceAction, &QAction::triggered, this, &MainWindow::onClearGeofenceTriggered);
+    flightToolbar->addAction(m_clearGeofenceAction);
+    QWidget* clearGeofenceButton = flightToolbar->widgetForAction(m_clearGeofenceAction);
+    if (clearGeofenceButton) clearGeofenceButton->setObjectName("clearGeofenceButton");
 }
 
 void MainWindow::setupStatusBar() {
@@ -350,6 +379,11 @@ void MainWindow::setupConnections() {
 
     // Map -> MainWindow (map interactions)
     connect(m_mapWidget, &MapWidget::mapClicked, this, &MainWindow::onMapClicked);
+
+    // Geofence model -> Enable/disable upload button
+    connect(m_geofenceModel, &GeofenceModel::geofenceChanged, this, [this]() {
+        m_uploadGeofenceAction->setEnabled(m_geofenceModel->isValid());
+    });
 }
 
 void MainWindow::onConnectTriggered() {
@@ -702,23 +736,102 @@ void MainWindow::onCommandAck(uint16_t command, uint8_t result) {
 }
 
 void MainWindow::onMapClicked(double lat, double lon) {
-    qDebug() << "MainWindow: Map clicked at" << lat << "," << lon << "- Adding waypoint";
+    // Check if geofence mode is active
+    if (m_mapWidget->geofenceMode()) {
+        qDebug() << "MainWindow: Map clicked at" << lat << "," << lon << "- Adding geofence vertex";
 
-    // Create a new waypoint at the clicked location
-    Waypoint wp;
-    wp.setLatitude(lat);
-    wp.setLongitude(lon);
-    wp.setAltitude(20.0);  // Default 20m altitude
-    wp.setCommand(MAV_CMD_NAV_WAYPOINT);
-    wp.setFrame(MAV_FRAME_GLOBAL_RELATIVE_ALT_INT);  // Use INT frame for compatibility
-    wp.setAutocontinue(1);  // Auto-continue to next waypoint
-    wp.setParam1(0);  // Hold time (0 = no hold)
-    wp.setParam2(2);  // Acceptance radius in meters
-    wp.setParam3(0);  // Pass through waypoint
-    wp.setParam4(NAN);  // Desired yaw angle (NAN = not used)
+        // Add vertex to geofence
+        QGeoCoordinate coord(lat, lon);
+        m_geofenceModel->addVertex(coord);
 
-    // Add waypoint to mission
-    m_missionModel->addWaypoint(wp);
+        statusBar()->showMessage(tr("Geofence vertex added at %1, %2").arg(lat, 0, 'f', 6).arg(lon, 0, 'f', 6), 2000);
+    } else {
+        qDebug() << "MainWindow: Map clicked at" << lat << "," << lon << "- Adding waypoint";
 
-    statusBar()->showMessage(tr("Waypoint added at %1, %2").arg(lat, 0, 'f', 6).arg(lon, 0, 'f', 6), 2000);
+        // Create a new waypoint at the clicked location
+        Waypoint wp;
+        wp.setLatitude(lat);
+        wp.setLongitude(lon);
+        wp.setAltitude(20.0);  // Default 20m altitude
+        wp.setCommand(MAV_CMD_NAV_WAYPOINT);
+        wp.setFrame(MAV_FRAME_GLOBAL_RELATIVE_ALT_INT);  // Use INT frame for compatibility
+        wp.setAutocontinue(1);  // Auto-continue to next waypoint
+        wp.setParam1(0);  // Hold time (0 = no hold)
+        wp.setParam2(2);  // Acceptance radius in meters
+        wp.setParam3(0);  // Pass through waypoint
+        wp.setParam4(NAN);  // Desired yaw angle (NAN = not used)
+
+        // Add waypoint to mission
+        m_missionModel->addWaypoint(wp);
+
+        statusBar()->showMessage(tr("Waypoint added at %1, %2").arg(lat, 0, 'f', 6).arg(lon, 0, 'f', 6), 2000);
+    }
+}
+
+void MainWindow::onGeofenceToggled(bool checked) {
+    m_mapWidget->setGeofenceMode(checked);
+
+    if (checked) {
+        statusBar()->showMessage(tr("Geofence mode enabled - Click map to add vertices"), 3000);
+    } else {
+        statusBar()->showMessage(tr("Geofence mode disabled"), 2000);
+    }
+}
+
+void MainWindow::onUploadGeofenceTriggered() {
+    if (!m_geofenceModel->isValid()) {
+        statusBar()->showMessage(tr("Geofence must have at least 3 vertices"), 3000);
+        return;
+    }
+
+    qInfo() << "MainWindow: Uploading geofence with" << m_geofenceModel->count() << "vertices";
+
+    // ArduPilot Geofence Upload Protocol
+    // We send FENCE_POINT messages for each vertex
+    const auto& vertices = m_geofenceModel->vertices();
+
+    for (int i = 0; i < vertices.count(); ++i) {
+        const QGeoCoordinate& coord = vertices.at(i);
+
+        mavlink_message_t msg;
+        mavlink_fence_point_t fencePoint{};
+
+        fencePoint.target_system = m_vehicleModel->systemId();
+        fencePoint.target_component = m_vehicleModel->componentId();
+        fencePoint.idx = i;
+        fencePoint.count = vertices.count();
+        fencePoint.lat = coord.latitude();
+        fencePoint.lng = coord.longitude();
+
+        mavlink_msg_fence_point_encode(255, 190, &msg, &fencePoint);
+        m_mavlinkRouter->sendMessage(msg);
+
+        qDebug() << "MainWindow: Sent FENCE_POINT" << i << "of" << vertices.count()
+                 << "at" << coord.latitude() << "," << coord.longitude();
+    }
+
+    // Enable the geofence via parameter
+    // FENCE_ENABLE = 1 enables the fence
+    // FENCE_TYPE = 2 sets it to polygon fence (1=max altitude, 2=polygon, 3=both)
+    mavlink_message_t msg;
+    mavlink_param_set_t paramSet{};
+
+    paramSet.target_system = m_vehicleModel->systemId();
+    paramSet.target_component = m_vehicleModel->componentId();
+    strcpy(paramSet.param_id, "FENCE_ENABLE");
+    paramSet.param_value = 1.0f;
+    paramSet.param_type = MAV_PARAM_TYPE_REAL32;
+
+    mavlink_msg_param_set_encode(255, 190, &msg, &paramSet);
+    m_mavlinkRouter->sendMessage(msg);
+
+    qInfo() << "MainWindow: Enabled FENCE_ENABLE parameter";
+
+    m_geofenceModel->setActive(true);
+    statusBar()->showMessage(tr("Geofence uploaded! (%1 vertices) - Fence ENABLED").arg(m_geofenceModel->count()), 4000);
+}
+
+void MainWindow::onClearGeofenceTriggered() {
+    m_geofenceModel->clearGeofence();
+    statusBar()->showMessage(tr("Geofence cleared"), 2000);
 }

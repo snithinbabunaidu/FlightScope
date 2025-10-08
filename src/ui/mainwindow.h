@@ -14,6 +14,7 @@
 #include "../models/vehiclemodel.h"
 #include "../models/healthmodel.h"
 #include "../models/missionmodel.h"
+#include "../models/geofencemodel.h"
 #include "missioneditor.h"
 #include "mapwidget.h"
 #include "hudwidget.h"
@@ -57,6 +58,11 @@ private slots:
     void onStartMissionTriggered();
     void onCommandAck(uint16_t command, uint8_t result);
 
+    // Geofence slots
+    void onGeofenceToggled(bool checked);
+    void onUploadGeofenceTriggered();
+    void onClearGeofenceTriggered();
+
 private:
     void setupUi();
     void setupMenus();
@@ -81,6 +87,7 @@ private:
     VehicleModel* m_vehicleModel;
     HealthModel* m_healthModel;
     MissionModel* m_missionModel;
+    GeofenceModel* m_geofenceModel;
 
     // UI components
     QDockWidget* m_telemetryDock;
@@ -105,6 +112,9 @@ private:
     QAction* m_landAction;
     QAction* m_rtlAction;
     QAction* m_startMissionAction;
+    QAction* m_geofenceAction;
+    QAction* m_uploadGeofenceAction;
+    QAction* m_clearGeofenceAction;
 
     QTimer* m_updateTimer;
 };
