@@ -39,6 +39,16 @@ Item {
         // Map type (Qt 6 uses mapType instead of activeMapType)
         // Default to first available map type (usually street map for OSM)
 
+        // Map click handler for adding waypoints
+        MouseArea {
+            anchors.fill: parent
+            acceptedButtons: Qt.LeftButton
+            onClicked: (mouse) => {
+                var coord = map.toCoordinate(Qt.point(mouse.x, mouse.y));
+                mapWidget.onMapClicked(coord.latitude, coord.longitude);
+            }
+        }
+
         // Vehicle marker - Using SVG icon
         MapQuickItem {
             id: vehicleMarker

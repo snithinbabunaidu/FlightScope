@@ -379,8 +379,9 @@ void MissionEditor::onMissionAckReceived(uint8_t type, uint8_t missionType) {
             setStatusText("Mission upload complete!");
             m_missionModel->markSaved();
 
-            // Set current mission item to 0 (start from beginning)
-            sendMissionSetCurrent(0);
+            // Set current mission item to 1 (first actual waypoint, not HOME)
+            // HOME is seq 0, first waypoint is seq 1
+            sendMissionSetCurrent(1);
 
             emit missionUploadComplete(true);
         } else if (type == 13) {

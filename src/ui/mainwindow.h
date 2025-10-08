@@ -43,6 +43,9 @@ private slots:
     void updateTelemetryDisplay();
     void updateLinkStats();
 
+    // Map interaction
+    void onMapClicked(double lat, double lon);
+
     // Flight control slots
     void onGuidedTriggered();
     void onAutoTriggered();

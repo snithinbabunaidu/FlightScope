@@ -254,6 +254,11 @@ void MapWidget::updateWaypoint(int index, double lat, double lon, double alt) {
     }
 }
 
+void MapWidget::onMapClicked(double lat, double lon) {
+    qDebug() << "MapWidget: Map clicked at" << lat << "," << lon;
+    emit mapClicked(lat, lon);
+}
+
 void MapWidget::onQmlStatusChanged(QQuickWidget::Status status) {
     qDebug() << "MapWidget: QML status changed to:" << status;
 

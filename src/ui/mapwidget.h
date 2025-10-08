@@ -37,6 +37,9 @@ public slots:
     void removeWaypoint(int index);
     void updateWaypoint(int index, double lat, double lon, double alt);
 
+    // Map interaction (callable from QML)
+    Q_INVOKABLE void onMapClicked(double lat, double lon);
+
 signals:
     // Map interaction signals
     void mapClicked(double lat, double lon);

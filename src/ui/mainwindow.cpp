@@ -347,6 +347,9 @@ void MainWindow::setupConnections() {
     // CommandBus -> MainWindow (command acknowledgments)
     connect(m_mavlinkRouter, &MavlinkRouter::commandAckReceived, this,
             &MainWindow::onCommandAck);
+
+    // Map -> MainWindow (map interactions)
+    connect(m_mapWidget, &MapWidget::mapClicked, this, &MainWindow::onMapClicked);
 }
 
 void MainWindow::onConnectTriggered() {
@@ -696,4 +699,26 @@ void MainWindow::onCommandAck(uint16_t command, uint8_t result) {
     }
 
     qInfo() << "MainWindow: Command" << commandName << "result:" << resultStr;
+}
+
+void MainWindow::onMapClicked(double lat, double lon) {
+    qDebug() << "MainWindow: Map clicked at" << lat << "," << lon << "- Adding waypoint";
+
+    // Create a new waypoint at the clicked location
+    Waypoint wp;
+    wp.setLatitude(lat);
+    wp.setLongitude(lon);
+    wp.setAltitude(20.0);  // Default 20m altitude
+    wp.setCommand(MAV_CMD_NAV_WAYPOINT);
+    wp.setFrame(MAV_FRAME_GLOBAL_RELATIVE_ALT_INT);  // Use INT frame for compatibility
+    wp.setAutocontinue(1);  // Auto-continue to next waypoint
+    wp.setParam1(0);  // Hold time (0 = no hold)
+    wp.setParam2(2);  // Acceptance radius in meters
+    wp.setParam3(0);  // Pass through waypoint
+    wp.setParam4(NAN);  // Desired yaw angle (NAN = not used)
+
+    // Add waypoint to mission
+    m_missionModel->addWaypoint(wp);
+
+    statusBar()->showMessage(tr("Waypoint added at %1, %2").arg(lat, 0, 'f', 6).arg(lon, 0, 'f', 6), 2000);
 }
