@@ -5,9 +5,51 @@
 #include <QTableWidget>
 #include <QPushButton>
 #include <QLabel>
+#include <QStyledItemDelegate>
+#include <QComboBox>
 #include "models/missionmodel.h"
 #include "models/vehiclemodel.h"
 #include "comm/mavlinkrouter.h"
+
+/**
+ * @brief Delegate for Edit button
+ */
+class CommandDelegate : public QStyledItemDelegate {
+    Q_OBJECT
+
+public:
+    explicit CommandDelegate(QObject* parent = nullptr);
+
+    void paint(QPainter* painter, const QStyleOptionViewItem& option,
+              const QModelIndex& index) const override;
+    bool editorEvent(QEvent* event, QAbstractItemModel* model,
+                    const QStyleOptionViewItem& option, const QModelIndex& index) override;
+    QSize sizeHint(const QStyleOptionViewItem& option,
+                  const QModelIndex& index) const override;
+
+signals:
+    void editCommandRequested(int row) const;
+};
+
+/**
+ * @brief Delegate for Delete button
+ */
+class DeleteDelegate : public QStyledItemDelegate {
+    Q_OBJECT
+
+public:
+    explicit DeleteDelegate(QObject* parent = nullptr);
+
+    void paint(QPainter* painter, const QStyleOptionViewItem& option,
+              const QModelIndex& index) const override;
+    bool editorEvent(QEvent* event, QAbstractItemModel* model,
+                    const QStyleOptionViewItem& option, const QModelIndex& index) override;
+    QSize sizeHint(const QStyleOptionViewItem& option,
+                  const QModelIndex& index) const override;
+
+signals:
+    void deleteRequested(int row) const;
+};
 
 /**
  * @brief Mission Editor widget for creating and managing waypoint missions
@@ -50,6 +92,8 @@ private slots:
     void onDownloadMissionClicked();
     void onTableItemChanged(QTableWidgetItem* item);
     void onMissionModelChanged();
+    void onEditCommandRequested(int row);
+    void onDeleteRequested(int row);
 
 private:
     void setupUi();
@@ -72,6 +116,8 @@ private:
 
     // UI elements
     QTableWidget* m_tableWidget;
+    CommandDelegate* m_commandDelegate;
+    DeleteDelegate* m_deleteDelegate;
     QPushButton* m_addButton;
     QPushButton* m_removeButton;
     QPushButton* m_clearButton;

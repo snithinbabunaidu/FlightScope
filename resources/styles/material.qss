@@ -267,3 +267,131 @@ QScrollBar::handle:horizontal {
 }
 QScrollBar::handle:horizontal:hover { background-color: #7B5E9D; }
 QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0px; }
+
+/* ========================================
+   COMMAND EDITOR DIALOG STYLES
+   Two-step wizard for mission command configuration
+   ======================================== */
+
+/* Main Dialog */
+QDialog#CommandEditorDialog {
+    background-color: #EEEEEE;
+    font-family: "Roboto", "Segoe UI", sans-serif;
+    font-size: 11pt;
+}
+
+/* Dialog Title */
+QDialog#CommandEditorDialog QLabel#dialogTitle {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #3B1E54;
+    padding: 10px 0px;
+}
+
+/* Category Headers (Navigation, Loiter, Actions) */
+QLabel#categoryHeader {
+    font-size: 12pt;
+    font-weight: bold;
+    color: #3B1E54;
+    margin-top: 10px;
+    padding-bottom: 4px;
+    border-bottom: 2px solid #D4BEE4;
+}
+
+/* Command Selection Buttons */
+QPushButton#commandButton {
+    background-color: white;
+    border: 1px solid #D4BEE4;
+    border-radius: 6px;
+    padding: 8px;
+    color: #3B1E54;
+    text-align: left;
+    min-height: 50px;
+}
+
+QPushButton#commandButton:hover {
+    background-color: #D4BEE4;
+}
+
+QPushButton#commandButton:pressed {
+    background-color: #9B7EBD;
+    color: white;
+    border-color: #9B7EBD;
+}
+
+/* Back Button */
+QPushButton#backButton {
+    background-color: transparent;
+    color: #3B1E54;
+    border: 1px solid #D4BEE4;
+    border-radius: 6px;
+    padding: 6px 12px;
+    text-align: left;
+}
+
+QPushButton#backButton:hover {
+    background-color: #D4BEE4;
+}
+
+/* Parameter Group Box */
+QGroupBox#parameterGroup {
+    background-color: transparent;
+    border: none;
+    font-weight: bold;
+    color: #3B1E54;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+QGroupBox#parameterGroup::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 0px 5px;
+    color: #3B1E54;
+}
+
+/* Parameter Labels */
+QLabel#parameterLabel {
+    font-weight: 500;
+    color: #3B1E54;
+    padding: 4px;
+}
+
+/* Dialog Action Buttons */
+QPushButton#saveButton {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 24px;
+    font-weight: 600;
+    min-width: 80px;
+}
+
+QPushButton#saveButton:hover {
+    background-color: #45A049;
+}
+
+QPushButton#saveButton:pressed {
+    background-color: #3D8B40;
+}
+
+QPushButton#cancelButton {
+    background-color: transparent;
+    color: #3B1E54;
+    border: 1px solid #3B1E54;
+    border-radius: 6px;
+    padding: 8px 24px;
+    font-weight: 600;
+    min-width: 80px;
+}
+
+QPushButton#cancelButton:hover {
+    background-color: #D4BEE4;
+}
+
+QPushButton#cancelButton:pressed {
+    background-color: #9B7EBD;
+    color: white;
+    border-color: #9B7EBD;
+}

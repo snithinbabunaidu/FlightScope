@@ -1,9 +1,147 @@
 #include "missioneditor.h"
+#include "commandeditordialog.h"
 #include <QVBoxLayout>
 #include <QHBoxLayout>
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QDebug>
+#include <QPainter>
+#include <QApplication>
+#include <QMouseEvent>
+
+// ============================================================================
+// CommandDelegate Implementation
+// ============================================================================
+
+CommandDelegate::CommandDelegate(QObject* parent)
+    : QStyledItemDelegate(parent) {
+}
+
+void CommandDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
+                            const QModelIndex& index) const {
+    painter->save();
+
+    // Draw background
+    if (option.state & QStyle::State_Selected) {
+        painter->fillRect(option.rect, option.palette.highlight());
+    } else if (option.state & QStyle::State_MouseOver) {
+        painter->fillRect(option.rect, option.palette.midlight());
+    }
+
+    // Calculate button rect (centered in cell)
+    QRect buttonRect = option.rect.adjusted(8, 4, -8, -4);
+
+    // Draw Edit button
+    QStyleOptionButton buttonOption;
+    buttonOption.rect = buttonRect;
+    buttonOption.text = "Edit";
+    buttonOption.state = QStyle::State_Enabled;
+
+    if (option.state & QStyle::State_Selected) {
+        buttonOption.state |= QStyle::State_HasFocus;
+    }
+
+    QApplication::style()->drawControl(QStyle::CE_PushButton, &buttonOption, painter);
+
+    painter->restore();
+}
+
+bool CommandDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
+                                  const QStyleOptionViewItem& option,
+                                  const QModelIndex& index) {
+    Q_UNUSED(model);
+
+    if (event->type() == QEvent::MouseButtonRelease) {
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+
+        // Calculate button rect
+        QRect buttonRect = option.rect.adjusted(8, 4, -8, -4);
+
+        // Check if click is on button
+        if (buttonRect.contains(mouseEvent->pos())) {
+            emit editCommandRequested(index.row());
+            return true;
+        }
+    }
+
+    return QStyledItemDelegate::editorEvent(event, model, option, index);
+}
+
+QSize CommandDelegate::sizeHint(const QStyleOptionViewItem& option,
+                                const QModelIndex& index) const {
+    QSize size = QStyledItemDelegate::sizeHint(option, index);
+    size.setHeight(qMax(size.height(), 32));  // Minimum height for button
+    return size;
+}
+
+// ============================================================================
+// DeleteDelegate Implementation
+// ============================================================================
+
+DeleteDelegate::DeleteDelegate(QObject* parent)
+    : QStyledItemDelegate(parent) {
+}
+
+void DeleteDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option,
+                           const QModelIndex& index) const {
+    painter->save();
+
+    // Draw background
+    if (option.state & QStyle::State_Selected) {
+        painter->fillRect(option.rect, option.palette.highlight());
+    } else if (option.state & QStyle::State_MouseOver) {
+        painter->fillRect(option.rect, option.palette.midlight());
+    }
+
+    // Calculate button rect (centered in cell)
+    QRect buttonRect = option.rect.adjusted(8, 4, -8, -4);
+
+    // Draw Delete button with red styling
+    painter->setPen(Qt::NoPen);
+    painter->setBrush(QColor("#F44336"));  // Red color
+    painter->drawRoundedRect(buttonRect, 6, 6);
+
+    // Draw text
+    painter->setPen(Qt::white);
+    QFont font = painter->font();
+    font.setWeight(QFont::Bold);
+    painter->setFont(font);
+    painter->drawText(buttonRect, Qt::AlignCenter, "Delete");
+
+    painter->restore();
+}
+
+bool DeleteDelegate::editorEvent(QEvent* event, QAbstractItemModel* model,
+                                 const QStyleOptionViewItem& option,
+                                 const QModelIndex& index) {
+    Q_UNUSED(model);
+
+    if (event->type() == QEvent::MouseButtonRelease) {
+        QMouseEvent* mouseEvent = static_cast<QMouseEvent*>(event);
+
+        // Calculate button rect
+        QRect buttonRect = option.rect.adjusted(8, 4, -8, -4);
+
+        // Check if click is on button
+        if (buttonRect.contains(mouseEvent->pos())) {
+            emit deleteRequested(index.row());
+            return true;
+        }
+    }
+
+    return QStyledItemDelegate::editorEvent(event, model, option, index);
+}
+
+QSize DeleteDelegate::sizeHint(const QStyleOptionViewItem& option,
+                               const QModelIndex& index) const {
+    QSize size = QStyledItemDelegate::sizeHint(option, index);
+    size.setHeight(qMax(size.height(), 32));  // Minimum height for button
+    return size;
+}
+
+// ============================================================================
+// MissionEditor Implementation
+// ============================================================================
 
 MissionEditor::MissionEditor(MissionModel* missionModel, MavlinkRouter* mavlinkRouter,
                              VehicleModel* vehicleModel, QWidget* parent)
@@ -12,6 +150,8 @@ MissionEditor::MissionEditor(MissionModel* missionModel, MavlinkRouter* mavlinkR
       m_mavlinkRouter(mavlinkRouter),
       m_vehicleModel(vehicleModel),
       m_tableWidget(nullptr),
+      m_commandDelegate(nullptr),
+      m_deleteDelegate(nullptr),
       m_addButton(nullptr),
       m_removeButton(nullptr),
       m_clearButton(nullptr),
@@ -75,13 +215,30 @@ void MissionEditor::setupUi() {
 
     // Table - Enable alternating row colors
     m_tableWidget = new QTableWidget(this);
-    m_tableWidget->setColumnCount(6);
+    m_tableWidget->setColumnCount(7);  // Added Edit Mission and Delete columns
     m_tableWidget->setHorizontalHeaderLabels(
-        {"#", "Command", "Latitude", "Longitude", "Altitude (m)", "Frame"});
-    m_tableWidget->horizontalHeader()->setStretchLastSection(true);
+        {"#", "Command", "Latitude", "Longitude", "Altitude (m)", "Edit Mission", "Delete"});
+    m_tableWidget->horizontalHeader()->setStretchLastSection(false);
     m_tableWidget->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_tableWidget->setSelectionMode(QAbstractItemView::SingleSelection);
     m_tableWidget->setAlternatingRowColors(true);  // Enable alternating row colors
+
+    // Set column widths
+    m_tableWidget->setColumnWidth(0, 40);  // # column - narrow
+    m_tableWidget->setColumnWidth(5, 100);  // Edit Mission column
+    m_tableWidget->setColumnWidth(6, 100);  // Delete column
+
+    // Set command delegate for column 5 (Edit Mission button column)
+    m_commandDelegate = new CommandDelegate(this);
+    m_tableWidget->setItemDelegateForColumn(5, m_commandDelegate);
+    connect(m_commandDelegate, &CommandDelegate::editCommandRequested, this,
+            &MissionEditor::onEditCommandRequested);
+
+    // Set delete delegate for column 6 (Delete button column)
+    m_deleteDelegate = new DeleteDelegate(this);
+    m_tableWidget->setItemDelegateForColumn(6, m_deleteDelegate);
+    connect(m_deleteDelegate, &DeleteDelegate::deleteRequested, this,
+            &MissionEditor::onDeleteRequested);
 
     mainLayout->addWidget(m_tableWidget);
 
@@ -125,9 +282,10 @@ void MissionEditor::updateTableRow(int row) {
     seqItem->setFlags(seqItem->flags() & ~Qt::ItemIsEditable);
     m_tableWidget->setItem(row, 0, seqItem);
 
-    // Command
+    // Command - Read-only
     QTableWidgetItem* cmdItem = new QTableWidgetItem(Waypoint::commandName(wp->command()));
     cmdItem->setFlags(cmdItem->flags() & ~Qt::ItemIsEditable);
+    cmdItem->setData(Qt::UserRole, wp->command());  // Store command ID
     m_tableWidget->setItem(row, 1, cmdItem);
 
     // Latitude
@@ -142,10 +300,15 @@ void MissionEditor::updateTableRow(int row) {
     QTableWidgetItem* altItem = new QTableWidgetItem(QString::number(wp->altitude(), 'f', 2));
     m_tableWidget->setItem(row, 4, altItem);
 
-    // Frame
-    QTableWidgetItem* frameItem = new QTableWidgetItem(Waypoint::frameName(wp->frame()));
-    frameItem->setFlags(frameItem->flags() & ~Qt::ItemIsEditable);
-    m_tableWidget->setItem(row, 5, frameItem);
+    // Edit Mission button (column 5) - will be rendered by delegate
+    QTableWidgetItem* editItem = new QTableWidgetItem("");  // Empty text, button drawn by delegate
+    editItem->setFlags(editItem->flags() & ~Qt::ItemIsEditable);
+    m_tableWidget->setItem(row, 5, editItem);
+
+    // Delete button (column 6) - will be rendered by delegate
+    QTableWidgetItem* deleteItem = new QTableWidgetItem("");  // Empty text, button drawn by delegate
+    deleteItem->setFlags(deleteItem->flags() & ~Qt::ItemIsEditable);
+    m_tableWidget->setItem(row, 6, deleteItem);
 }
 
 void MissionEditor::setUiEnabled(bool enabled) {
@@ -228,6 +391,16 @@ void MissionEditor::onTableItemChanged(QTableWidgetItem* item) {
     bool ok = false;
 
     switch (col) {
+        case 1:  // Command
+            {
+                uint16_t commandId = item->data(Qt::UserRole).toUInt(&ok);
+                if (ok) {
+                    updated.setCommand(commandId);
+                    qDebug() << "MissionEditor: Changed waypoint" << row << "command to"
+                             << Waypoint::commandName(commandId);
+                }
+            }
+            break;
         case 2:  // Latitude
             updated.setLatitude(item->text().toDouble(&ok));
             break;
@@ -526,4 +699,41 @@ void MissionEditor::finalizeMissionDownload() {
     emit missionDownloadComplete(true);
 
     qInfo() << "MissionEditor: Download complete," << m_downloadBuffer.count() << "waypoints";
+}
+
+void MissionEditor::onEditCommandRequested(int row) {
+    const Waypoint* wp = m_missionModel->waypointAt(row);
+    if (!wp) {
+        return;
+    }
+
+    // Open command editor dialog
+    CommandEditorDialog dialog(*wp, this);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        // Update waypoint with new command and parameters
+        Waypoint updatedWp = dialog.getWaypoint();
+        m_missionModel->updateWaypoint(row, updatedWp);
+
+        setStatusText(QString("Updated waypoint #%1 command to: %2")
+                          .arg(row)
+                          .arg(Waypoint::commandName(updatedWp.command())));
+
+        qDebug() << "MissionEditor: Updated waypoint" << row << "to command"
+                 << Waypoint::commandName(updatedWp.command());
+    }
+}
+
+void MissionEditor::onDeleteRequested(int row) {
+    // Confirm deletion
+    QMessageBox::StandardButton reply = QMessageBox::question(
+        this, "Delete Waypoint",
+        QString("Are you sure you want to delete waypoint #%1?").arg(row),
+        QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        m_missionModel->removeWaypoint(row);
+        setStatusText(QString("Deleted waypoint #%1").arg(row));
+        qDebug() << "MissionEditor: Deleted waypoint" << row;
+    }
 }

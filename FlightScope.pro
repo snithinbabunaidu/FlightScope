@@ -23,6 +23,7 @@ SOURCES += \
     src/ui/mainwindow.cpp \
     src/ui/connectdialog.cpp \
     src/ui/missioneditor.cpp \
+    src/ui/commandeditordialog.cpp \
     src/ui/mapwidget.cpp \
     src/ui/compasswidget.cpp \
     src/ui/hudwidget.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     src/ui/mainwindow.h \
     src/ui/connectdialog.h \
     src/ui/missioneditor.h \
+    src/ui/commandeditordialog.h \
     src/ui/mapwidget.h \
     src/ui/compasswidget.h \
     src/ui/hudwidget.h \
