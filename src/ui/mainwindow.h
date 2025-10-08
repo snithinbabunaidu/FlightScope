@@ -16,7 +16,6 @@
 #include "../models/missionmodel.h"
 #include "missioneditor.h"
 #include "mapwidget.h"
-#include "compasswidget.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -87,7 +86,6 @@ private:
     QWidget* m_healthWidget;
     MissionEditor* m_missionEditor;
     MapWidget* m_mapWidget;
-    CompassWidget* m_compassWidget;
 
     QAction* m_disconnectAction;
     QAction* m_disconnectToolAction;

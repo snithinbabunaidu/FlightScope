@@ -6,7 +6,12 @@
     <qresource prefix="/styles">
         <file>styles/material.qss</file>
     </qresource>
-    <qresource prefix="/images">
-        <file>images/drone.svg</file>
+    <qresource prefix="/icons">
+        <file>icons/drone.svg</file>
+        <file>icons/home.svg</file>
+        <file>icons/center-on-drone.svg</file>
+        <file>icons/follow-drone.svg</file>
+        <file>icons/location.svg</file>
+        <file>icons/compass-needle.svg</file>
     </qresource>
 </RCC>

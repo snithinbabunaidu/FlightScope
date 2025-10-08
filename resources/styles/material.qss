@@ -18,8 +18,7 @@
 QWidget {
     background-color: #EEEEEE;
     font-family: "Roboto", "Segoe UI", sans-serif;
-    font-size: 10pt;
-    color: #3B1E54; /* Default text color */
+    font-size: 11pt;    
 }
 
 QMainWindow {
@@ -136,23 +135,20 @@ QStatusBar QLabel {
    - QGroupBox and QDockWidget are styled to have no visible container borders.
    ======================================== */
    
-/* Dock Widgets (Telemetry, System Health, etc.) */
-QDockWidget {
-    border: none; /* No border on the widget itself */
-}
 
 QDockWidget::title {
-    background-color: #3B1E54;
-    color: white; /* White text for contrast */
-    padding: 8px; /* Reduced padding */
-    border-radius: 0;
+    background: #3B1E54;
+    color: white;
+    padding: 8px;
+    border-radius: 0px;
     font-weight: bold;
     font-size: 11pt;
+    text-align: center;
 }
 
 /* This is the key part: it ensures the content area of the dock has no border */
 QDockWidget > QWidget {
-    border: none;
+    border: 1px solid #3B1E54;
     background-color: #EEEEEE;
 }
 

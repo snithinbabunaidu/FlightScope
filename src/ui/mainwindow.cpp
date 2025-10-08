@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget* parent)
       m_commandBus(nullptr), m_vehicleModel(nullptr), m_healthModel(nullptr),
       m_missionModel(nullptr), m_telemetryDock(nullptr), m_healthDock(nullptr),
       m_missionDock(nullptr), m_telemetryWidget(nullptr), m_healthWidget(nullptr),
-      m_missionEditor(nullptr), m_mapWidget(nullptr), m_compassWidget(nullptr),
+      m_missionEditor(nullptr), m_mapWidget(nullptr),
       m_disconnectAction(nullptr), m_disconnectToolAction(nullptr), m_updateTimer(nullptr) {
     ui->setupUi(this);
 
@@ -230,18 +230,16 @@ void MainWindow::setupStatusBar() {
 void MainWindow::setupDockWidgets() {
     // Telemetry Dock
     m_telemetryDock = new QDockWidget(tr("Telemetry"), this);
+
+    // Force white text on dock title bar
+    QPalette telemetryPalette = m_telemetryDock->palette();
+    telemetryPalette.setColor(QPalette::WindowText, Qt::white);
+    m_telemetryDock->setPalette(telemetryPalette);
+
     m_telemetryWidget = new QWidget();
     auto* telemetryMainLayout = new QVBoxLayout(m_telemetryWidget);
 
-    // Add compass widget at top
-    m_compassWidget = new CompassWidget(m_telemetryWidget);
-    telemetryMainLayout->addWidget(m_compassWidget, 0, Qt::AlignCenter);
-
-    // Add separator line
-    QFrame* separator = new QFrame();
-    separator->setFrameShape(QFrame::HLine);
-    separator->setFrameShadow(QFrame::Sunken);
-    telemetryMainLayout->addWidget(separator);
+    // Compass removed - now displayed on map
 
     // Telemetry data
     QWidget* telemetryDataWidget = new QWidget();
@@ -261,6 +259,12 @@ void MainWindow::setupDockWidgets() {
 
     // Health Dock
     m_healthDock = new QDockWidget(tr("System Health"), this);
+
+    // Force white text on dock title bar
+    QPalette healthPalette = m_healthDock->palette();
+    healthPalette.setColor(QPalette::WindowText, Qt::white);
+    m_healthDock->setPalette(healthPalette);
+
     m_healthWidget = new QWidget();
     auto* healthLayout = new QFormLayout(m_healthWidget);
 
@@ -273,6 +277,12 @@ void MainWindow::setupDockWidgets() {
 
     // Mission Editor Dock
     m_missionDock = new QDockWidget(tr("Mission Editor"), this);
+
+    // Force white text on dock title bar
+    QPalette missionPalette = m_missionDock->palette();
+    missionPalette.setColor(QPalette::WindowText, Qt::white);
+    m_missionDock->setPalette(missionPalette);
+
     m_missionEditor = new MissionEditor(m_missionModel, m_mavlinkRouter, m_vehicleModel, this);
     m_missionDock->setWidget(m_missionEditor);
     addDockWidget(Qt::LeftDockWidgetArea, m_missionDock);
@@ -392,10 +402,7 @@ void MainWindow::onReconnecting(int attemptNumber, int delayMs) {
 }
 
 void MainWindow::updateTelemetryDisplay() {
-    // Update compass widget
-    if (m_compassWidget && m_vehicleModel) {
-        m_compassWidget->setHeading(m_vehicleModel->heading());
-    }
+    // Compass widget removed - now on map
 
     // Update status bar widgets
     if (m_vehicleModel && m_healthModel) {

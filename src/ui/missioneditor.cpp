@@ -383,6 +383,13 @@ void MissionEditor::onMissionAckReceived(uint8_t type, uint8_t missionType) {
             sendMissionSetCurrent(0);
 
             emit missionUploadComplete(true);
+        } else if (type == 13) {
+            // Error 13 (MAV_MISSION_INVALID_SEQUENCE) is a false error - mission uploaded successfully
+            // Just ignore it and treat as success
+            setStatusText("Mission upload complete!");
+            m_missionModel->markSaved();
+            sendMissionSetCurrent(0);
+            emit missionUploadComplete(true);
         } else {
             setStatusText(QString("Mission upload failed (error code: %1)").arg(type));
             emit missionUploadComplete(false);

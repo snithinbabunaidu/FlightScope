@@ -297,6 +297,14 @@ void MapWidget::onVehiclePositionChanged() {
     double lon = m_vehicleModel->longitude();
     double heading = m_vehicleModel->heading();
 
+    // Set home position on first valid GPS position
+    static bool homePositionSet = false;
+    if (!homePositionSet && lat != 0.0 && lon != 0.0) {
+        setHomePosition(lat, lon);
+        homePositionSet = true;
+        qDebug() << "MapWidget: Home position set to" << lat << "," << lon;
+    }
+
     // Update vehicle position on map
     setVehiclePosition(lat, lon, heading);
 

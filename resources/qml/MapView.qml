@@ -39,7 +39,7 @@ Item {
         // Map type (Qt 6 uses mapType instead of activeMapType)
         // Default to first available map type (usually street map for OSM)
 
-        // Vehicle marker
+        // Vehicle marker - Using SVG icon
         MapQuickItem {
             id: vehicleMarker
             coordinate: QtPositioning.coordinate(vehicleLat, vehicleLon)
@@ -49,150 +49,20 @@ Item {
 
             sourceItem: Item {
                 id: droneIcon
-                width: 48
-                height: 48
+                width: 40
+                height: 40
+                rotation: vehicleHeading
 
-                // Professional drone icon using SVG-style drawing
-                Canvas {
-                    id: droneCanvas
+                Image {
                     anchors.fill: parent
-                    rotation: vehicleHeading
-
-                    onPaint: {
-                        var ctx = getContext("2d");
-                        ctx.clearRect(0, 0, width, height);
-
-                        var centerX = width / 2;
-                        var centerY = height / 2;
-
-                        // Draw arms
-                        ctx.strokeStyle = "#333333";
-                        ctx.lineWidth = 2.5;
-                        ctx.lineCap = "round";
-
-                        // Front-right arm
-                        ctx.beginPath();
-                        ctx.moveTo(centerX + 4, centerY - 4);
-                        ctx.lineTo(centerX + 14, centerY - 14);
-                        ctx.stroke();
-
-                        // Front-left arm
-                        ctx.beginPath();
-                        ctx.moveTo(centerX - 4, centerY - 4);
-                        ctx.lineTo(centerX - 14, centerY - 14);
-                        ctx.stroke();
-
-                        // Back-right arm
-                        ctx.beginPath();
-                        ctx.moveTo(centerX + 4, centerY + 4);
-                        ctx.lineTo(centerX + 14, centerY + 14);
-                        ctx.stroke();
-
-                        // Back-left arm
-                        ctx.beginPath();
-                        ctx.moveTo(centerX - 4, centerY + 4);
-                        ctx.lineTo(centerX - 14, centerY + 14);
-                        ctx.stroke();
-
-                        // Draw motors/propellers
-                        ctx.fillStyle = "#666666";
-                        ctx.strokeStyle = "#333333";
-                        ctx.lineWidth = 1;
-
-                        // Front-right motor
-                        ctx.beginPath();
-                        ctx.arc(centerX + 14, centerY - 14, 4, 0, 2 * Math.PI);
-                        ctx.fill();
-                        ctx.stroke();
-                        ctx.beginPath();
-                        ctx.arc(centerX + 14, centerY - 14, 6, 0, 2 * Math.PI);
-                        ctx.strokeStyle = "#999999";
-                        ctx.globalAlpha = 0.5;
-                        ctx.stroke();
-                        ctx.globalAlpha = 1.0;
-
-                        // Front-left motor
-                        ctx.fillStyle = "#666666";
-                        ctx.strokeStyle = "#333333";
-                        ctx.beginPath();
-                        ctx.arc(centerX - 14, centerY - 14, 4, 0, 2 * Math.PI);
-                        ctx.fill();
-                        ctx.stroke();
-                        ctx.beginPath();
-                        ctx.arc(centerX - 14, centerY - 14, 6, 0, 2 * Math.PI);
-                        ctx.strokeStyle = "#999999";
-                        ctx.globalAlpha = 0.5;
-                        ctx.stroke();
-                        ctx.globalAlpha = 1.0;
-
-                        // Back-right motor
-                        ctx.fillStyle = "#666666";
-                        ctx.strokeStyle = "#333333";
-                        ctx.beginPath();
-                        ctx.arc(centerX + 14, centerY + 14, 4, 0, 2 * Math.PI);
-                        ctx.fill();
-                        ctx.stroke();
-                        ctx.beginPath();
-                        ctx.arc(centerX + 14, centerY + 14, 6, 0, 2 * Math.PI);
-                        ctx.strokeStyle = "#999999";
-                        ctx.globalAlpha = 0.5;
-                        ctx.stroke();
-                        ctx.globalAlpha = 1.0;
-
-                        // Back-left motor
-                        ctx.fillStyle = "#666666";
-                        ctx.strokeStyle = "#333333";
-                        ctx.beginPath();
-                        ctx.arc(centerX - 14, centerY + 14, 4, 0, 2 * Math.PI);
-                        ctx.fill();
-                        ctx.stroke();
-                        ctx.beginPath();
-                        ctx.arc(centerX - 14, centerY + 14, 6, 0, 2 * Math.PI);
-                        ctx.strokeStyle = "#999999";
-                        ctx.globalAlpha = 0.5;
-                        ctx.stroke();
-                        ctx.globalAlpha = 1.0;
-
-                        // Draw body (center)
-                        ctx.fillStyle = "#FF4444";
-                        ctx.strokeStyle = "#CC0000";
-                        ctx.lineWidth = 1.5;
-                        ctx.beginPath();
-                        ctx.arc(centerX, centerY, 6, 0, 2 * Math.PI);
-                        ctx.fill();
-                        ctx.stroke();
-
-                        // Heading indicator (front) - Green arrow
-                        ctx.fillStyle = "#00FF00";
-                        ctx.strokeStyle = "#00CC00";
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(centerX, centerY - 8);      // Arrow tip
-                        ctx.lineTo(centerX - 3, centerY - 16);  // Left point
-                        ctx.lineTo(centerX, centerY - 13);      // Center notch
-                        ctx.lineTo(centerX + 3, centerY - 16);  // Right point
-                        ctx.closePath();
-                        ctx.fill();
-                        ctx.stroke();
-
-                        // Center marker (white dot)
-                        ctx.fillStyle = "#FFFFFF";
-                        ctx.beginPath();
-                        ctx.arc(centerX, centerY, 1.5, 0, 2 * Math.PI);
-                        ctx.fill();
-                    }
-
-                    Connections {
-                        target: root
-                        function onVehicleHeadingChanged() {
-                            droneCanvas.requestPaint();
-                        }
-                    }
+                    source: "qrc:/icons/icons/drone.svg"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
                 }
             }
         }
 
-        // Home marker
+        // Home marker - Using SVG icon
         MapQuickItem {
             id: homeMarker
             coordinate: QtPositioning.coordinate(homeLat, homeLon)
@@ -203,45 +73,24 @@ Item {
 
             sourceItem: Item {
                 id: homeIcon
-                width: 30
-                height: 30
+                width: 35
+                height: 35
 
-                // Home shape (house icon)
-                Canvas {
+                Image {
                     anchors.fill: parent
-
-                    onPaint: {
-                        var ctx = getContext("2d");
-                        ctx.clearRect(0, 0, width, height);
-
-                        // Draw house
-                        ctx.fillStyle = "#4444FF";
-                        ctx.strokeStyle = "#FFFFFF";
-                        ctx.lineWidth = 2;
-
-                        // Roof (triangle)
-                        ctx.beginPath();
-                        ctx.moveTo(width / 2, 5);
-                        ctx.lineTo(width - 5, height / 2);
-                        ctx.lineTo(5, height / 2);
-                        ctx.closePath();
-                        ctx.fill();
-                        ctx.stroke();
-
-                        // Base (rectangle)
-                        ctx.fillRect(8, height / 2, width - 16, height / 2 - 5);
-                        ctx.strokeRect(8, height / 2, width - 16, height / 2 - 5);
-                    }
+                    source: "qrc:/icons/icons/home.svg"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
                 }
             }
         }
 
-        // Flight path trail
+        // Flight path trail - Straight green lines
         MapPolyline {
             id: flightTrail
-            line.width: 3
-            line.color: "#44FF44"
-            opacity: 0.7
+            line.width: 1.5
+            line.color: "#4CAF50"
+            opacity: 1.0
         }
 
         // Mission path (connecting waypoints)
@@ -268,29 +117,43 @@ Item {
 
                 sourceItem: Item {
                     id: waypointIcon
-                    width: 35
-                    height: 35
+                    width: 40
+                    height: 40
 
-                    // Waypoint circle with number
+                    // Location pin icon
+                    Image {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: 0
+                        width: 30
+                        height: 30
+                        source: "qrc:/icons/icons/location.svg"
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                    }
+
+                    // Waypoint number badge
                     Rectangle {
-                        anchors.fill: parent
-                        radius: width / 2
-                        color: "#FFAA00"
-                        border.color: "#FFFFFF"
-                        border.width: 2
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        y: 8
+                        width: 18
+                        height: 18
+                        radius: 9
+                        color: "#FFFFFF"
+                        border.color: "#3B1E54"
+                        border.width: 1
 
                         Text {
                             anchors.centerIn: parent
                             text: model.index + 1
-                            color: "#FFFFFF"
+                            color: "#3B1E54"
                             font.bold: true
-                            font.pixelSize: 14
+                            font.pixelSize: 11
                         }
                     }
 
                     // Altitude label
                     Rectangle {
-                        x: parent.width + 5
+                        x: parent.width + 2
                         y: parent.height / 2 - height / 2
                         width: altText.width + 8
                         height: 20
@@ -307,6 +170,67 @@ Item {
                         }
                     }
                 }
+            }
+        }
+
+        // Compass widget (top-left corner) - Simple needle with N/E/W/S
+        Item {
+            anchors.left: parent.left
+            anchors.top: parent.top
+            anchors.margins: 15
+            width: 50
+            height: 50
+            z: 100
+
+            // N label (top)
+            Text {
+                x: parent.width / 2 - width / 2
+                y: 0
+                text: "N"
+                font.pixelSize: 12
+                font.bold: true
+                color: "#3B1E54"
+            }
+
+            // E label (right)
+            Text {
+                x: parent.width - width
+                y: parent.height / 2 - height / 2
+                text: "E"
+                font.pixelSize: 12
+                font.bold: true
+                color: "#666666"
+            }
+
+            // S label (bottom)
+            Text {
+                x: parent.width / 2 - width / 2
+                y: parent.height - height
+                text: "S"
+                font.pixelSize: 12
+                font.bold: true
+                color: "#666666"
+            }
+
+            // W label (left)
+            Text {
+                x: 0
+                y: parent.height / 2 - height / 2
+                text: "W"
+                font.pixelSize: 12
+                font.bold: true
+                color: "#666666"
+            }
+
+            // Compass needle (rotates with heading)
+            Image {
+                anchors.centerIn: parent
+                width: 30
+                height: 30
+                source: "qrc:/icons/icons/compass-needle.svg"
+                rotation: vehicleHeading
+                fillMode: Image.PreserveAspectFit
+                smooth: true
             }
         }
 
@@ -373,16 +297,19 @@ Item {
             Rectangle {
                 width: 45
                 height: 45
-                radius: 23
+                radius: 5
                 color: "#FFFFFF"
-                opacity: 0.95
-                border.color: "#0277BD"
-                border.width: 2
+                opacity: 0.9
+                border.color: "#CCCCCC"
+                border.width: 1
 
-                Text {
+                Image {
                     anchors.centerIn: parent
-                    text: "🎯"
-                    font.pixelSize: 20
+                    width: 28
+                    height: 28
+                    source: "qrc:/icons/icons/center-on-drone.svg"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
                 }
 
                 MouseArea {
@@ -420,17 +347,20 @@ Item {
             Rectangle {
                 width: 45
                 height: 45
-                radius: 23
+                radius: 5
                 color: "#FFFFFF"
-                opacity: homeSet ? 0.95 : 0.5
-                border.color: "#4CAF50"
-                border.width: 2
+                opacity: homeSet ? 0.9 : 0.5
+                border.color: "#CCCCCC"
+                border.width: 1
                 visible: homeSet
 
-                Text {
+                Image {
                     anchors.centerIn: parent
-                    text: "🏠"
-                    font.pixelSize: 20
+                    width: 24
+                    height: 24
+                    source: "qrc:/icons/icons/home.svg"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
                 }
 
                 MouseArea {
@@ -468,16 +398,19 @@ Item {
             Rectangle {
                 width: 45
                 height: 45
-                radius: 23
+                radius: 5
                 color: followMode ? "#FF6F00" : "#FFFFFF"
-                opacity: 0.95
-                border.color: followMode ? "#F57C00" : "#FF9800"
-                border.width: 2
+                opacity: 0.9
+                border.color: "#CCCCCC"
+                border.width: 1
 
-                Text {
+                Image {
                     anchors.centerIn: parent
-                    text: "📍"
-                    font.pixelSize: 20
+                    width: 28
+                    height: 28
+                    source: "qrc:/icons/icons/follow-drone.svg"
+                    fillMode: Image.PreserveAspectFit
+                    smooth: true
                 }
 
                 MouseArea {
