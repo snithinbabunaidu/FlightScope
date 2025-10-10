@@ -13,5 +13,8 @@
         <file>icons/follow-drone.svg</file>
         <file>icons/location.svg</file>
         <file>icons/compass-needle.svg</file>
+        <file>icons/geofence-location.svg</file>
+        <file>icons/plus.svg</file>
+        <file>icons/minus.svg</file>
     </qresource>
 </RCC>

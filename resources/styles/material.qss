@@ -239,6 +239,44 @@ QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
     border: 2px solid #9B7EBD;
 }
 
+/* Spin Box Buttons with Icons */
+QSpinBox::up-button, QDoubleSpinBox::up-button {
+    subcontrol-origin: border;
+    subcontrol-position: top right;
+    width: 20px;
+    height: 14px;
+    border-left: 1px solid #D4BEE4;
+    border-bottom: 1px solid #D4BEE4;
+    border-top-right-radius: 6px;
+    background-color: #F5F0FF;
+    image: url(:/icons/icons/plus.svg);
+    padding: 2px;
+}
+QSpinBox::up-button:hover, QDoubleSpinBox::up-button:hover {
+    background-color: #E8DEFF;
+}
+QSpinBox::up-button:pressed, QDoubleSpinBox::up-button:pressed {
+    background-color: #D4BEE4;
+}
+
+QSpinBox::down-button, QDoubleSpinBox::down-button {
+    subcontrol-origin: border;
+    subcontrol-position: bottom right;
+    width: 20px;
+    height: 14px;
+    border-left: 1px solid #D4BEE4;
+    border-bottom-right-radius: 6px;
+    background-color: #F5F0FF;
+    image: url(:/icons/icons/minus.svg);
+    padding: 2px;
+}
+QSpinBox::down-button:hover, QDoubleSpinBox::down-button:hover {
+    background-color: #E8DEFF;
+}
+QSpinBox::down-button:pressed, QDoubleSpinBox::down-button:pressed {
+    background-color: #D4BEE4;
+}
+
 /* Scroll Bar */
 QScrollBar:vertical {
     background-color: #E0E0E0;

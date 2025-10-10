@@ -59,8 +59,8 @@ Item {
 
             sourceItem: Item {
                 id: droneIcon
-                width: 40
-                height: 40
+                width: 36  // Reduced from 40 (10% smaller)
+                height: 36
                 rotation: vehicleHeading
 
                 Image {
@@ -83,8 +83,8 @@ Item {
 
             sourceItem: Item {
                 id: homeIcon
-                width: 35
-                height: 35
+                width: 21  // Reduced from 35 (40% smaller)
+                height: 21
 
                 Image {
                     anchors.fill: parent
