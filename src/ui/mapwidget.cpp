@@ -198,28 +198,57 @@ void MapWidget::clearTrail() {
 }
 
 void MapWidget::updateWaypoints() {
+    qDebug() << "=== MapWidget::updateWaypoints ===";
+
     if (!m_missionModel) {
+        qDebug() << "No mission model set";
         return;
     }
+
+    qDebug() << "Updating" << m_missionModel->count() << "waypoints on map";
 
     QVariantList waypoints;
     for (int i = 0; i < m_missionModel->count(); ++i) {
         const Waypoint* wp = m_missionModel->waypointAt(i);
-        if (wp && wp->command() == MAV_CMD_NAV_WAYPOINT) {
-            QVariantMap wpData;
-            wpData["index"] = i;
-            wpData["latitude"] = wp->latitude();
-            wpData["longitude"] = wp->longitude();
-            wpData["altitude"] = wp->altitude();
-            waypoints.append(wpData);
+        if (wp) {
+            // Show markers for ALL navigation commands that have coordinates
+            bool hasLocation = (wp->latitude() != 0.0 || wp->longitude() != 0.0);
+            bool isNavCommand = (wp->command() == MAV_CMD_NAV_WAYPOINT ||
+                                wp->command() == MAV_CMD_NAV_LOITER_UNLIM ||
+                                wp->command() == MAV_CMD_NAV_LOITER_TURNS ||
+                                wp->command() == MAV_CMD_NAV_LOITER_TIME ||
+                                wp->command() == MAV_CMD_NAV_TAKEOFF ||
+                                wp->command() == MAV_CMD_NAV_LAND);
+
+            qDebug() << "  WP" << i << ":" << Waypoint::commandName(wp->command())
+                     << "Lat:" << wp->latitude() << "Lon:" << wp->longitude()
+                     << "hasLocation:" << hasLocation << "isNavCommand:" << isNavCommand;
+
+            if (hasLocation && isNavCommand) {
+                QVariantMap wpData;
+                wpData["index"] = i;
+                wpData["latitude"] = wp->latitude();
+                wpData["longitude"] = wp->longitude();
+                wpData["altitude"] = wp->altitude();
+                waypoints.append(wpData);
+                qDebug() << "    -> Adding marker to map";
+            } else {
+                qDebug() << "    -> Skipping (no location or not nav command)";
+            }
         }
     }
 
     QQuickItem* rootItem = rootObject();
     if (rootItem) {
+        qDebug() << "Invoking QML updateWaypoints with" << waypoints.count() << "waypoints";
         QMetaObject::invokeMethod(rootItem, "updateWaypoints",
                                  Q_ARG(QVariant, QVariant::fromValue(waypoints)));
+        qDebug() << "QML updateWaypoints invoked successfully";
+    } else {
+        qDebug() << "ERROR: No QML root item available!";
     }
+
+    qDebug() << "=== End MapWidget::updateWaypoints ===";
 }
 
 void MapWidget::addWaypoint(int index, double lat, double lon, double alt) {

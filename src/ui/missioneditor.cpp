@@ -518,7 +518,9 @@ void MissionEditor::sendNextMissionItem() {
         item.target_component = m_targetComponentId;
         item.mission_type = MAV_MISSION_TYPE_MISSION;
 
-        qDebug() << "MissionEditor: Sending waypoint" << wpIndex << "as seq" << m_expectedItemSeq;
+        qDebug() << "MissionEditor: Sending waypoint" << wpIndex << "as seq" << m_expectedItemSeq
+                 << "- Lat:" << wp->latitude() << "Lon:" << wp->longitude() << "Alt:" << wp->altitude()
+                 << "Command:" << Waypoint::commandName(wp->command());
     }
 
     mavlink_message_t msg;
@@ -543,28 +545,41 @@ void MissionEditor::sendMissionSetCurrent(uint16_t seq) {
 }
 
 void MissionEditor::onMissionAckReceived(uint8_t type, uint8_t missionType) {
+    qDebug() << "=== MissionEditor::onMissionAckReceived ===";
+    qDebug() << "Type:" << type << "MissionType:" << missionType;
+
     if (missionType != MAV_MISSION_TYPE_MISSION) {
+        qDebug() << "Not a mission type, ignoring";
         return;
     }
 
     if (m_protocolState == ProtocolState::UploadingItems) {
         if (type == MAV_MISSION_ACCEPTED) {
+            qDebug() << "Mission accepted (type 0)";
             setStatusText("Mission upload complete!");
             m_missionModel->markSaved();
 
             // Set current mission item to 1 (first actual waypoint, not HOME)
             // HOME is seq 0, first waypoint is seq 1
+            qDebug() << "Setting current waypoint to seq 1 (first user waypoint)";
             sendMissionSetCurrent(1);
 
             emit missionUploadComplete(true);
         } else if (type == 13) {
             // Error 13 (MAV_MISSION_INVALID_SEQUENCE) is a false error - mission uploaded successfully
             // Just ignore it and treat as success
+            qDebug() << "Received error 13 (false error), treating as success";
             setStatusText("Mission upload complete!");
             m_missionModel->markSaved();
-            sendMissionSetCurrent(0);
+
+            // CRITICAL FIX: Set to seq 1, not seq 0!
+            // Seq 0 is HOME - we want to start at first waypoint (seq 1)
+            qDebug() << "Setting current waypoint to seq 1 (first user waypoint)";
+            sendMissionSetCurrent(1);
+
             emit missionUploadComplete(true);
         } else {
+            qDebug() << "Mission upload failed with error:" << type;
             setStatusText(QString("Mission upload failed (error code: %1)").arg(type));
             emit missionUploadComplete(false);
         }
@@ -702,10 +717,19 @@ void MissionEditor::finalizeMissionDownload() {
 }
 
 void MissionEditor::onEditCommandRequested(int row) {
+    qDebug() << "=== MissionEditor::onEditCommandRequested ===";
+    qDebug() << "Editing waypoint row:" << row;
+
     const Waypoint* wp = m_missionModel->waypointAt(row);
     if (!wp) {
+        qDebug() << "ERROR: Waypoint at row" << row << "is null!";
         return;
     }
+
+    qDebug() << "Original waypoint:";
+    qDebug() << "  Command:" << wp->command() << "(" << Waypoint::commandName(wp->command()) << ")";
+    qDebug() << "  Lat:" << wp->latitude() << "Lon:" << wp->longitude() << "Alt:" << wp->altitude();
+    qDebug() << "  Params:" << wp->param1() << wp->param2() << wp->param3() << wp->param4();
 
     // Open command editor dialog
     CommandEditorDialog dialog(*wp, this);
@@ -713,6 +737,12 @@ void MissionEditor::onEditCommandRequested(int row) {
     if (dialog.exec() == QDialog::Accepted) {
         // Update waypoint with new command and parameters
         Waypoint updatedWp = dialog.getWaypoint();
+
+        qDebug() << "Updated waypoint returned from dialog:";
+        qDebug() << "  Command:" << updatedWp.command() << "(" << Waypoint::commandName(updatedWp.command()) << ")";
+        qDebug() << "  Lat:" << updatedWp.latitude() << "Lon:" << updatedWp.longitude() << "Alt:" << updatedWp.altitude();
+        qDebug() << "  Params:" << updatedWp.param1() << updatedWp.param2() << updatedWp.param3() << updatedWp.param4();
+
         m_missionModel->updateWaypoint(row, updatedWp);
 
         setStatusText(QString("Updated waypoint #%1 command to: %2")
@@ -721,7 +751,10 @@ void MissionEditor::onEditCommandRequested(int row) {
 
         qDebug() << "MissionEditor: Updated waypoint" << row << "to command"
                  << Waypoint::commandName(updatedWp.command());
+    } else {
+        qDebug() << "Dialog was cancelled - no changes made";
     }
+    qDebug() << "=== End onEditCommandRequested ===";
 }
 
 void MissionEditor::onDeleteRequested(int row) {

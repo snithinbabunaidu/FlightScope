@@ -1,4 +1,5 @@
 #include "missionmodel.h"
+#include <QDebug>
 
 MissionModel::MissionModel(QObject* parent)
     : QObject(parent),
@@ -58,18 +59,35 @@ void MissionModel::removeWaypoint(int index) {
 }
 
 void MissionModel::updateWaypoint(int index, const Waypoint& waypoint) {
+    qDebug() << "=== MissionModel::updateWaypoint ===";
+    qDebug() << "Index:" << index;
+
     if (index < 0 || index >= m_waypoints.count()) {
+        qDebug() << "ERROR: Invalid index!" << index << "count:" << m_waypoints.count();
         return;
     }
+
+    qDebug() << "OLD waypoint at index" << index << ":";
+    qDebug() << "  Command:" << m_waypoints[index].command() << "(" << Waypoint::commandName(m_waypoints[index].command()) << ")";
+    qDebug() << "  Lat:" << m_waypoints[index].latitude() << "Lon:" << m_waypoints[index].longitude() << "Alt:" << m_waypoints[index].altitude();
+    qDebug() << "  Params:" << m_waypoints[index].param1() << m_waypoints[index].param2() << m_waypoints[index].param3() << m_waypoints[index].param4();
+
+    qDebug() << "NEW waypoint:";
+    qDebug() << "  Command:" << waypoint.command() << "(" << Waypoint::commandName(waypoint.command()) << ")";
+    qDebug() << "  Lat:" << waypoint.latitude() << "Lon:" << waypoint.longitude() << "Alt:" << waypoint.altitude();
+    qDebug() << "  Params:" << waypoint.param1() << waypoint.param2() << waypoint.param3() << waypoint.param4();
 
     m_waypoints[index] = waypoint;
 
     // Ensure sequence number is correct
     m_waypoints[index].setSequence(index);
 
+    qDebug() << "Emitting waypointUpdated(" << index << ")";
     emit waypointUpdated(index, waypoint);
+    qDebug() << "Emitting missionChanged()";
     emit missionChanged();
     setModified(true);
+    qDebug() << "=== End MissionModel::updateWaypoint ===";
 }
 
 void MissionModel::moveWaypoint(int fromIndex, int toIndex) {
