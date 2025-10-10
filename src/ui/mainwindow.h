@@ -8,6 +8,9 @@
 #include <QLabel>
 #include <QTimer>
 #include <QDockWidget>
+#include <QScreen>
+#include <QStackedWidget>
+#include <QPushButton>
 #include "../comm/linkmanager.h"
 #include "../comm/mavlinkrouter.h"
 #include "../comm/commandbus.h"
@@ -29,8 +32,18 @@ class MainWindow : public QMainWindow {
     Q_OBJECT
 
 public:
+    // Form factor enum for responsive layouts
+    enum FormFactor {
+        Desktop,      // >= 1280px width
+        Tablet,       // 600-1279px width
+        Phone         // < 600px width
+    };
+
     explicit MainWindow(QWidget* parent = nullptr);
     ~MainWindow() override;
+
+protected:
+    void resizeEvent(QResizeEvent* event) override;
 
 private slots:
     void onConnectTriggered();
@@ -71,7 +84,19 @@ private:
     void setupDockWidgets();
     void setupConnections();
 
+    // Responsive layout methods
+    FormFactor detectFormFactor() const;
+    void setupResponsiveLayout();
+    void setupDesktopLayout();
+    void setupTabletLayout();
+    void setupMobileLayout();
+    void addFloatingActionButtons();
+    void loadPlatformStylesheet();
+
     Ui::MainWindow* ui;
+
+    // Responsive layout state
+    FormFactor m_currentFormFactor;
 
     // Status bar widgets
     QLabel* m_connectionStatusLabel;
@@ -117,6 +142,11 @@ private:
     QAction* m_clearGeofenceAction;
 
     QTimer* m_updateTimer;
+
+    // Mobile-specific UI components
+    QWidget* m_bottomNavBar;
+    QStackedWidget* m_contentStack;
+    QList<QPushButton*> m_floatingActionButtons;
 };
 
 #endif  // MAINWINDOW_H

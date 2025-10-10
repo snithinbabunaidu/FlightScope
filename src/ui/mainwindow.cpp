@@ -11,25 +11,27 @@
 #include <QFormLayout>
 #include <QFile>
 #include <QFrame>
+#include <QHBoxLayout>
+#include <QSplitter>
+#include <QScrollArea>
+#include <QGuiApplication>
+#include <QResizeEvent>
 
 MainWindow::MainWindow(QWidget* parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow), m_connectionStatusLabel(nullptr),
+    : QMainWindow(parent), ui(new Ui::MainWindow), m_currentFormFactor(Desktop),
+      m_connectionStatusLabel(nullptr),
       m_gpsStatusLabel(nullptr), m_batteryStatusLabel(nullptr), m_modeStatusLabel(nullptr),
       m_linkStatsLabel(nullptr), m_linkManager(nullptr), m_mavlinkRouter(nullptr),
       m_commandBus(nullptr), m_vehicleModel(nullptr), m_healthModel(nullptr),
       m_missionModel(nullptr), m_geofenceModel(nullptr), m_telemetryDock(nullptr), m_hudDock(nullptr),
       m_healthDock(nullptr), m_missionDock(nullptr), m_telemetryWidget(nullptr),
       m_hudWidget(nullptr), m_healthWidget(nullptr), m_missionEditor(nullptr), m_mapWidget(nullptr),
-      m_disconnectAction(nullptr), m_disconnectToolAction(nullptr), m_updateTimer(nullptr) {
+      m_disconnectAction(nullptr), m_disconnectToolAction(nullptr), m_updateTimer(nullptr),
+      m_bottomNavBar(nullptr), m_contentStack(nullptr) {
     ui->setupUi(this);
 
-    // Load Material Design stylesheet
-    QFile styleFile(":/styles/styles/material.qss");
-    if (styleFile.open(QFile::ReadOnly)) {
-        QString styleSheet = QLatin1String(styleFile.readAll());
-        qApp->setStyleSheet(styleSheet);
-        styleFile.close();
-    }
+    // Load platform-specific stylesheet
+    loadPlatformStylesheet();
 
     // Create core components
     m_linkManager = new LinkManager(this);
@@ -50,6 +52,9 @@ MainWindow::MainWindow(QWidget* parent)
 
     setWindowTitle("FlightScope - Ground Control Station");
     resize(1280, 720);
+
+    // Setup responsive layout based on initial size
+    setupResponsiveLayout();
 
     // Start update timer (100ms = 10Hz UI update)
     m_updateTimer->setInterval(100);
@@ -852,4 +857,318 @@ void MainWindow::onClearGeofenceTriggered() {
     m_geofenceModel->setActive(false);
 
     statusBar()->showMessage(tr("Geofence cleared and DISABLED on vehicle"), 3000);
+}
+
+// ============================================================================
+// Responsive Layout Implementation
+// ============================================================================
+
+void MainWindow::resizeEvent(QResizeEvent* event) {
+    QMainWindow::resizeEvent(event);
+
+    // Check if form factor has changed
+    FormFactor newFormFactor = detectFormFactor();
+    if (newFormFactor != m_currentFormFactor) {
+        qInfo() << "MainWindow: Form factor changed from" << m_currentFormFactor << "to" << newFormFactor;
+        m_currentFormFactor = newFormFactor;
+        setupResponsiveLayout();
+    }
+
+    // Update FAB positions if they exist
+    if (!m_floatingActionButtons.isEmpty() && m_currentFormFactor == Phone) {
+        int fabX = width() - 80;
+        int fabY = height() - 200;
+
+        for (int i = 0; i < m_floatingActionButtons.size(); ++i) {
+            QPushButton* fab = m_floatingActionButtons[i];
+            fab->move(fabX, fabY - (i * 70));  // Stack vertically with 70px spacing
+        }
+    }
+}
+
+MainWindow::FormFactor MainWindow::detectFormFactor() const {
+    int screenWidth = width();
+
+    if (screenWidth < 600) {
+        return Phone;
+    } else if (screenWidth < 1280) {
+        return Tablet;
+    } else {
+        return Desktop;
+    }
+}
+
+void MainWindow::setupResponsiveLayout() {
+    switch (m_currentFormFactor) {
+        case Desktop:
+            setupDesktopLayout();
+            break;
+        case Tablet:
+            setupTabletLayout();
+            break;
+        case Phone:
+            setupMobileLayout();
+            break;
+    }
+}
+
+void MainWindow::setupDesktopLayout() {
+    qInfo() << "MainWindow: Setting up Desktop layout";
+
+    // Show menu bar and toolbars
+    if (menuBar()) menuBar()->show();
+
+    // Show all toolbars
+    for (QToolBar* toolbar : findChildren<QToolBar*>()) {
+        toolbar->show();
+    }
+
+    // Show status bar
+    if (statusBar()) statusBar()->show();
+
+    // Show all dock widgets
+    for (QDockWidget* dock : findChildren<QDockWidget*>()) {
+        dock->show();
+    }
+
+    // Remove mobile-specific components if they exist
+    if (m_bottomNavBar) {
+        m_bottomNavBar->hide();
+        m_bottomNavBar->deleteLater();
+        m_bottomNavBar = nullptr;
+    }
+
+    if (m_contentStack) {
+        // Restore widgets to their original docks before deleting stack
+        m_contentStack->hide();
+        m_contentStack->deleteLater();
+        m_contentStack = nullptr;
+    }
+
+    // Remove floating action buttons
+    for (QPushButton* fab : m_floatingActionButtons) {
+        fab->deleteLater();
+    }
+    m_floatingActionButtons.clear();
+
+    // Ensure map is the central widget
+    if (m_mapWidget && centralWidget() != m_mapWidget) {
+        setCentralWidget(m_mapWidget);
+    }
+}
+
+void MainWindow::setupTabletLayout() {
+    qInfo() << "MainWindow: Setting up Tablet layout";
+
+    // Similar to desktop but with more compact layout
+    setupDesktopLayout();
+
+    // Could add tablet-specific tweaks here:
+    // - Smaller toolbar icons
+    // - Compact dock widgets
+    // - Hide less important docks by default
+}
+
+void MainWindow::setupMobileLayout() {
+    qInfo() << "MainWindow: Setting up Mobile (Phone) layout";
+
+    // Hide menu bar (access via gestures or hamburger menu)
+    if (menuBar()) menuBar()->hide();
+
+    // Hide all toolbars
+    for (QToolBar* toolbar : findChildren<QToolBar*>()) {
+        toolbar->hide();
+    }
+
+    // Hide status bar (info shown in overlay)
+    if (statusBar()) statusBar()->hide();
+
+    // Hide all docks - we'll show them in stacked views
+    for (QDockWidget* dock : findChildren<QDockWidget*>()) {
+        removeDockWidget(dock);
+        dock->setFloating(false);
+        dock->hide();
+    }
+
+    // Create stacked widget for tab switching
+    if (!m_contentStack) {
+        m_contentStack = new QStackedWidget(this);
+
+        // Add pages: Map, Mission Editor, Telemetry
+        m_contentStack->addWidget(m_mapWidget);              // Index 0
+        if (m_missionEditor) m_contentStack->addWidget(m_missionEditor);  // Index 1
+        if (m_telemetryWidget) m_contentStack->addWidget(m_telemetryWidget);  // Index 2
+    }
+
+    // Create bottom navigation bar
+    if (!m_bottomNavBar) {
+        m_bottomNavBar = new QWidget(this);
+        m_bottomNavBar->setObjectName("bottomNavBar");
+        m_bottomNavBar->setFixedHeight(60);
+
+        QHBoxLayout* navLayout = new QHBoxLayout(m_bottomNavBar);
+        navLayout->setContentsMargins(0, 0, 0, 0);
+        navLayout->setSpacing(0);
+
+        // Map button
+        QPushButton* mapBtn = new QPushButton("Map", m_bottomNavBar);
+        mapBtn->setObjectName("navButton");
+        mapBtn->setMinimumHeight(60);
+        connect(mapBtn, &QPushButton::clicked, [this]() {
+            if (m_contentStack) m_contentStack->setCurrentIndex(0);
+        });
+
+        // Mission button
+        QPushButton* missionBtn = new QPushButton("Mission", m_bottomNavBar);
+        missionBtn->setObjectName("navButton");
+        missionBtn->setMinimumHeight(60);
+        connect(missionBtn, &QPushButton::clicked, [this]() {
+            if (m_contentStack) m_contentStack->setCurrentIndex(1);
+        });
+
+        // Telemetry button
+        QPushButton* telemetryBtn = new QPushButton("Telemetry", m_bottomNavBar);
+        telemetryBtn->setObjectName("navButton");
+        telemetryBtn->setMinimumHeight(60);
+        connect(telemetryBtn, &QPushButton::clicked, [this]() {
+            if (m_contentStack) m_contentStack->setCurrentIndex(2);
+        });
+
+        navLayout->addWidget(mapBtn);
+        navLayout->addWidget(missionBtn);
+        navLayout->addWidget(telemetryBtn);
+    }
+
+    // Create main mobile layout
+    QWidget* centralContainer = new QWidget(this);
+    QVBoxLayout* mainLayout = new QVBoxLayout(centralContainer);
+    mainLayout->setContentsMargins(0, 0, 0, 0);
+    mainLayout->setSpacing(0);
+
+    if (m_contentStack) mainLayout->addWidget(m_contentStack);
+    if (m_bottomNavBar) mainLayout->addWidget(m_bottomNavBar);
+
+    setCentralWidget(centralContainer);
+
+    // Add floating action buttons
+    addFloatingActionButtons();
+}
+
+void MainWindow::addFloatingActionButtons() {
+    // Clear existing FABs
+    for (QPushButton* fab : m_floatingActionButtons) {
+        fab->deleteLater();
+    }
+    m_floatingActionButtons.clear();
+
+    // Create ARM button FAB
+    QPushButton* fabArm = new QPushButton(this);
+    fabArm->setObjectName("fab");
+    fabArm->setText("ARM");
+    fabArm->setFixedSize(56, 56);
+    fabArm->setStyleSheet(
+        "QPushButton#fab { "
+        "background-color: #4CAF50; "
+        "border-radius: 28px; "
+        "color: white; "
+        "font-weight: bold; "
+        "border: none; "
+        "} "
+        "QPushButton#fab:pressed { "
+        "background-color: #388E3C; "
+        "}"
+    );
+    connect(fabArm, &QPushButton::clicked, this, &MainWindow::onArmTriggered);
+    fabArm->show();
+    m_floatingActionButtons.append(fabArm);
+
+    // Create RTL button FAB
+    QPushButton* fabRtl = new QPushButton(this);
+    fabRtl->setObjectName("fab");
+    fabRtl->setText("RTL");
+    fabRtl->setFixedSize(56, 56);
+    fabRtl->setStyleSheet(
+        "QPushButton#fab { "
+        "background-color: #FF9800; "
+        "border-radius: 28px; "
+        "color: white; "
+        "font-weight: bold; "
+        "border: none; "
+        "} "
+        "QPushButton#fab:pressed { "
+        "background-color: #F57C00; "
+        "}"
+    );
+    connect(fabRtl, &QPushButton::clicked, this, &MainWindow::onRtlTriggered);
+    fabRtl->show();
+    m_floatingActionButtons.append(fabRtl);
+
+    // Create LAND button FAB
+    QPushButton* fabLand = new QPushButton(this);
+    fabLand->setObjectName("fab");
+    fabLand->setText("LAND");
+    fabLand->setFixedSize(56, 56);
+    fabLand->setStyleSheet(
+        "QPushButton#fab { "
+        "background-color: #F44336; "
+        "border-radius: 28px; "
+        "color: white; "
+        "font-weight: bold; "
+        "border: none; "
+        "} "
+        "QPushButton#fab:pressed { "
+        "background-color: #D32F2F; "
+        "}"
+    );
+    connect(fabLand, &QPushButton::clicked, this, &MainWindow::onLandTriggered);
+    fabLand->show();
+    m_floatingActionButtons.append(fabLand);
+
+    // Position FABs (will be updated in resizeEvent)
+    int fabX = width() - 80;
+    int fabY = height() - 200;
+
+    for (int i = 0; i < m_floatingActionButtons.size(); ++i) {
+        QPushButton* fab = m_floatingActionButtons[i];
+        fab->move(fabX, fabY - (i * 70));
+        fab->raise();  // Ensure FABs are on top
+    }
+}
+
+void MainWindow::loadPlatformStylesheet() {
+    QString stylesheetPath;
+
+#ifdef Q_OS_ANDROID
+    // Detect screen size for Android
+    FormFactor formFactor = detectFormFactor();
+    if (formFactor == Phone) {
+        stylesheetPath = ":/styles/styles/material_mobile.qss";
+    } else {
+        stylesheetPath = ":/styles/styles/material_tablet.qss";
+    }
+#elif defined(Q_OS_IOS)
+    stylesheetPath = ":/styles/styles/cupertino.qss";
+#else
+    // Desktop (Windows, macOS, Linux)
+    stylesheetPath = ":/styles/styles/material.qss";
+#endif
+
+    QFile styleFile(stylesheetPath);
+    if (styleFile.open(QFile::ReadOnly)) {
+        QString styleSheet = QLatin1String(styleFile.readAll());
+        qApp->setStyleSheet(styleSheet);
+        styleFile.close();
+        qInfo() << "MainWindow: Loaded stylesheet:" << stylesheetPath;
+    } else {
+        // Fallback to default material design
+        QFile fallbackFile(":/styles/styles/material.qss");
+        if (fallbackFile.open(QFile::ReadOnly)) {
+            QString styleSheet = QLatin1String(fallbackFile.readAll());
+            qApp->setStyleSheet(styleSheet);
+            fallbackFile.close();
+            qInfo() << "MainWindow: Loaded fallback stylesheet: material.qss";
+        } else {
+            qWarning() << "MainWindow: Failed to load any stylesheet!";
+        }
+    }
 }
