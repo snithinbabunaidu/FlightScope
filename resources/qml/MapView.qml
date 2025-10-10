@@ -14,6 +14,19 @@ Item {
     property bool homeSet: false
     property bool followMode: false
 
+    // Responsive design properties
+    property real baseDpi: 96
+    property real dpiScale: Screen.pixelDensity / (baseDpi / 25.4)
+    property bool isMobile: root.width < 600
+    property bool isTablet: root.width >= 600 && root.width < 1280
+    property bool isDesktop: root.width >= 1280
+
+    // Scaled sizes based on form factor
+    property real droneIconSize: isMobile ? 48 * dpiScale : (isTablet ? 40 : 36)
+    property real homeIconSize: isMobile ? 32 * dpiScale : (isTablet ? 24 : 21)
+    property real waypointIconSize: isMobile ? 48 : (isTablet ? 44 : 40)
+    property real controlButtonSize: isMobile ? 52 : (isTablet ? 48 : 45)
+
     // Plugin for OpenStreetMap
     Plugin {
         id: mapPlugin
@@ -59,8 +72,8 @@ Item {
 
             sourceItem: Item {
                 id: droneIcon
-                width: 36  // Reduced from 40 (10% smaller)
-                height: 36
+                width: droneIconSize
+                height: droneIconSize
                 rotation: vehicleHeading
 
                 Image {
@@ -83,8 +96,8 @@ Item {
 
             sourceItem: Item {
                 id: homeIcon
-                width: 21  // Reduced from 35 (40% smaller)
-                height: 21
+                width: homeIconSize
+                height: homeIconSize
 
                 Image {
                     anchors.fill: parent
@@ -187,15 +200,15 @@ Item {
 
                 sourceItem: Item {
                     id: waypointIcon
-                    width: 40
-                    height: 40
+                    width: waypointIconSize
+                    height: waypointIconSize
 
                     // Location pin icon
                     Image {
                         anchors.horizontalCenter: parent.horizontalCenter
                         y: 0
-                        width: 30
-                        height: 30
+                        width: waypointIconSize * 0.75
+                        height: waypointIconSize * 0.75
                         source: "qrc:/icons/icons/location.svg"
                         fillMode: Image.PreserveAspectFit
                         smooth: true
@@ -304,17 +317,18 @@ Item {
             }
         }
 
-        // Map controls overlay (right side - zoom)
+        // Map controls overlay (right side - zoom) - Hide on mobile (use pinch zoom)
         Column {
             anchors.right: parent.right
             anchors.top: parent.top
             anchors.margins: 10
             spacing: 5
+            visible: !isMobile  // Hide zoom controls on mobile devices
 
             // Zoom in button
             Rectangle {
-                width: 40
-                height: 40
+                width: controlButtonSize
+                height: controlButtonSize
                 color: "#FFFFFF"
                 opacity: 0.9
                 radius: 5
@@ -335,8 +349,8 @@ Item {
 
             // Zoom out button
             Rectangle {
-                width: 40
-                height: 40
+                width: controlButtonSize
+                height: controlButtonSize
                 color: "#FFFFFF"
                 opacity: 0.9
                 radius: 5
@@ -365,8 +379,8 @@ Item {
 
             // Center on Drone button
             Rectangle {
-                width: 45
-                height: 45
+                width: controlButtonSize + 5
+                height: controlButtonSize + 5
                 radius: 5
                 color: "#FFFFFF"
                 opacity: 0.9
@@ -415,8 +429,8 @@ Item {
 
             // Center on Home button
             Rectangle {
-                width: 45
-                height: 45
+                width: controlButtonSize + 5
+                height: controlButtonSize + 5
                 radius: 5
                 color: "#FFFFFF"
                 opacity: homeSet ? 0.9 : 0.5
@@ -466,8 +480,8 @@ Item {
 
             // Follow Mode toggle
             Rectangle {
-                width: 45
-                height: 45
+                width: controlButtonSize + 5
+                height: controlButtonSize + 5
                 radius: 5
                 color: followMode ? "#FF6F00" : "#FFFFFF"
                 opacity: 0.9
