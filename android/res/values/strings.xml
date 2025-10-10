@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">FlightScope</string>
+    <string name="location_permission_rationale">FlightScope needs location access to display your position on the map and track drone telemetry.</string>
+    <string name="storage_permission_rationale">FlightScope needs storage access to save mission files and flight logs.</string>
+</resources>
