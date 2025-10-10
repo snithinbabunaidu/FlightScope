@@ -81,3 +81,9 @@ MapCache/
 
 # Planning documents (temporary)
 PHASE4_PLAN.md
+# Exclude portable build artifacts
+FlightScope-Portable/
+FlightScope-v*.zip
+deploy/
+dist/
+*.keystore
