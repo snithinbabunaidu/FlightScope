@@ -5,6 +5,9 @@
     </qresource>
     <qresource prefix="/styles">
         <file>styles/material.qss</file>
+        <file>styles/material_mobile.qss</file>
+        <file>styles/material_tablet.qss</file>
+        <file>styles/cupertino.qss</file>
     </qresource>
     <qresource prefix="/icons">
         <file>icons/drone.svg</file>

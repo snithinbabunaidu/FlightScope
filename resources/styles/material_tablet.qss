@@ -1,0 +1,275 @@
+/* FlightScope Tablet UI Theme */
+
+/* ========================================
+   COLOR PALETTE:
+   Primary Dark: #3B1E54
+   Primary Medium: #9B7EBD
+   Primary Light: #D4BEE4
+   Neutral/Background: #EEEEEE
+   --- Accent Colors ---
+   Green: #4CAF50
+   Red: #F44336
+   Blue: #2196F3
+   Orange: #FFC107
+   Grey: #9E9E9E
+   ======================================== */
+
+/* Global Styles - Medium fonts and touch targets for tablets */
+QWidget {
+    background-color: #EEEEEE;
+    font-family: "Roboto", "Segoe UI", sans-serif;
+    font-size: 12pt;  /* Medium font for tablets */
+}
+
+QMainWindow {
+    background-color: #EEEEEE;
+}
+
+/* Menu Bar - Compact for tablets */
+QMenuBar {
+    background-color: #3B1E54;
+    color: white;
+    padding: 4px;
+    font-weight: 500;
+}
+
+QMenuBar::item {
+    background-color: transparent;
+    padding: 10px 18px;
+    border-radius: 6px;
+}
+
+QMenuBar::item:selected { background-color: #9B7EBD; }
+QMenuBar::item:pressed { background-color: #D4BEE4; color: #3B1E54; }
+
+/* Toolbar - Touch-friendly size */
+QToolBar {
+    background-color: #3B1E54;
+    border: none;
+    padding: 6px;
+    spacing: 6px;
+}
+
+QToolButton {
+    background-color: transparent;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px;
+    min-height: 44px;
+    min-width: 44px;
+}
+
+QToolButton:hover {
+    background-color: #9B7EBD;
+}
+
+QToolButton:pressed {
+    background-color: #D4BEE4;
+    color: #3B1E54;
+}
+
+/* Buttons - Touch-optimized (44pt minimum) */
+QPushButton {
+    background-color: #9B7EBD;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 14px 20px;
+    font-weight: 500;
+    font-size: 12pt;
+    min-height: 44px;
+    min-width: 80px;
+}
+
+QPushButton:hover {
+    background-color: #8A6DAC;
+}
+
+QPushButton:pressed {
+    background-color: #D4BEE4;
+    color: #3B1E54;
+}
+
+QPushButton:disabled {
+    background-color: #CCCCCC;
+    color: #999999;
+}
+
+/* Connect button */
+QPushButton#connectButton {
+    background-color: #4CAF50;
+    min-height: 48px;
+    padding: 16px 24px;
+}
+QPushButton#connectButton:hover { background-color: #45A049; }
+QPushButton#connectButton:pressed { background-color: #66BB6A; }
+
+/* Disconnect button */
+QPushButton#disconnectButton {
+    background-color: #F44336;
+    min-height: 48px;
+    padding: 16px 24px;
+}
+QPushButton#disconnectButton:hover { background-color: #E53935; }
+QPushButton#disconnectButton:pressed { background-color: #EF5350; }
+
+/* Flight Control Buttons */
+QPushButton#armButton { background-color: #4CAF50; min-height: 48px; }
+QPushButton#armButton:hover { background-color: #45A049; }
+
+QPushButton#disarmButton { background-color: #F44336; min-height: 48px; }
+QPushButton#disarmButton:hover { background-color: #E53935; }
+
+QPushButton#rtlButton { background-color: #FF9800; min-height: 48px; }
+QPushButton#rtlButton:hover { background-color: #FB8C00; }
+
+QPushButton#landButton { background-color: #F44336; min-height: 48px; }
+QPushButton#landButton:hover { background-color: #E53935; }
+
+QPushButton#takeoffButton { background-color: #2196F3; min-height: 48px; }
+QPushButton#takeoffButton:hover { background-color: #1E88E5; }
+
+/* Input Fields */
+QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    background-color: white;
+    border: 2px solid #D4BEE4;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 12pt;
+    min-height: 44px;
+}
+
+QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
+    border: 2px solid #9B7EBD;
+}
+
+/* Labels */
+QLabel {
+    color: #333333;
+    font-size: 12pt;
+    padding: 4px;
+}
+
+/* Table Widget */
+QTableWidget {
+    background-color: white;
+    border: 1px solid #D4BEE4;
+    border-radius: 6px;
+    gridline-color: #E0E0E0;
+}
+
+QTableWidget::item {
+    padding: 12px;
+    border: none;
+    min-height: 44px;
+}
+
+QTableWidget::item:selected {
+    background-color: #D4BEE4;
+    color: #3B1E54;
+}
+
+QHeaderView::section {
+    background-color: #3B1E54;
+    color: white;
+    padding: 12px;
+    border: none;
+    font-weight: bold;
+    min-height: 44px;
+}
+
+/* Dock Widgets - Compact for tablets */
+QDockWidget {
+    border: 1px solid #D4BEE4;
+    titlebar-close-icon: url(:/icons/close.png);
+    titlebar-normal-icon: url(:/icons/float.png);
+}
+
+QDockWidget::title {
+    background-color: #3B1E54;
+    color: white;
+    padding: 10px;
+    font-weight: bold;
+    text-align: left;
+}
+
+QDockWidget::close-button, QDockWidget::float-button {
+    background-color: transparent;
+    border: none;
+    padding: 4px;
+}
+
+QDockWidget::close-button:hover, QDockWidget::float-button:hover {
+    background-color: #9B7EBD;
+    border-radius: 4px;
+}
+
+/* Scroll Bars - Medium size for tablets */
+QScrollBar:vertical {
+    background-color: #F5F5F5;
+    width: 14px;
+    border-radius: 7px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #9B7EBD;
+    border-radius: 7px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #8A6DAC;
+}
+
+QScrollBar:horizontal {
+    background-color: #F5F5F5;
+    height: 14px;
+    border-radius: 7px;
+    margin: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #9B7EBD;
+    border-radius: 7px;
+    min-width: 30px;
+}
+
+/* Group Boxes */
+QGroupBox {
+    background-color: white;
+    border: 2px solid #D4BEE4;
+    border-radius: 8px;
+    margin-top: 20px;
+    padding: 14px;
+    font-size: 13pt;
+    font-weight: bold;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 2px 10px;
+    background-color: #9B7EBD;
+    color: white;
+    border-radius: 4px;
+}
+
+/* Status Bar */
+QStatusBar {
+    background-color: #3B1E54;
+    color: white;
+    font-size: 11pt;
+}
+
+QStatusBar QLabel {
+    color: white;
+    padding: 6px 10px;
+    font-size: 10pt;
+}
+
+/* Dialogs */
+QDialog {
+    background-color: #EEEEEE;
+}

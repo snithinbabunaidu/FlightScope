@@ -1,0 +1,255 @@
+/* FlightScope iOS (Cupertino) UI Theme */
+
+/* ========================================
+   iOS Human Interface Guidelines Colors
+   System Blue: #007AFF
+   System Green: #34C759
+   System Red: #FF3B30
+   System Orange: #FF9500
+   System Gray: #8E8E93
+   Background: #F2F2F7
+   Grouped Background: #FFFFFF
+   ======================================== */
+
+/* Global Styles - iOS-like appearance */
+QWidget {
+    background-color: #F2F2F7;
+    font-family: "SF Pro Text", "-apple-system", "Segoe UI", sans-serif;
+    font-size: 15pt;  /* iOS standard size */
+}
+
+QMainWindow {
+    background-color: #F2F2F7;
+}
+
+/* Buttons - iOS style (rounded rectangles) */
+QPushButton {
+    background-color: #007AFF;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 24px;
+    font-weight: 500;
+    font-size: 15pt;
+    min-height: 44px;  /* iOS HIG minimum */
+    min-width: 88px;
+}
+
+QPushButton:hover {
+    background-color: #0051D5;
+}
+
+QPushButton:pressed {
+    background-color: #004BB5;
+}
+
+QPushButton:disabled {
+    background-color: #C7C7CC;
+    color: #AEAEB2;
+}
+
+/* Connect button - Green */
+QPushButton#connectButton {
+    background-color: #34C759;
+    min-height: 50px;
+}
+QPushButton#connectButton:hover { background-color: #2FB350; }
+QPushButton#connectButton:pressed { background-color: #28A047; }
+
+/* Disconnect button - Red */
+QPushButton#disconnectButton {
+    background-color: #FF3B30;
+    min-height: 50px;
+}
+QPushButton#disconnectButton:hover { background-color: #E03428; }
+QPushButton#disconnectButton:pressed { background-color: #C72820; }
+
+/* Flight Control Buttons */
+QPushButton#armButton {
+    background-color: #34C759;
+    min-height: 50px;
+}
+QPushButton#armButton:hover { background-color: #2FB350; }
+
+QPushButton#disarmButton {
+    background-color: #FF3B30;
+    min-height: 50px;
+}
+QPushButton#disarmButton:hover { background-color: #E03428; }
+
+QPushButton#rtlButton {
+    background-color: #FF9500;
+    min-height: 50px;
+}
+QPushButton#rtlButton:hover { background-color: #E08600; }
+
+QPushButton#landButton {
+    background-color: #FF3B30;
+    min-height: 50px;
+}
+
+QPushButton#takeoffButton {
+    background-color: #007AFF;
+    min-height: 50px;
+}
+
+/* Input Fields - iOS style */
+QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    background-color: white;
+    border: 1px solid #C7C7CC;
+    border-radius: 10px;
+    padding: 12px;
+    font-size: 15pt;
+    min-height: 44px;
+}
+
+QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
+    border: 2px solid #007AFF;
+}
+
+/* Labels - iOS standard */
+QLabel {
+    color: #000000;
+    font-size: 14pt;
+    padding: 4px;
+}
+
+/* Table Widget - iOS grouped style */
+QTableWidget {
+    background-color: white;
+    border: none;
+    border-radius: 10px;
+    gridline-color: #C7C7CC;
+}
+
+QTableWidget::item {
+    padding: 14px;
+    border: none;
+    min-height: 44px;
+}
+
+QTableWidget::item:selected {
+    background-color: #E5E5EA;
+    color: #000000;
+}
+
+QHeaderView::section {
+    background-color: #F2F2F7;
+    color: #8E8E93;
+    padding: 12px;
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 11pt;
+}
+
+/* Scroll Bars - iOS minimalist style */
+QScrollBar:vertical {
+    background-color: transparent;
+    width: 8px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background-color: rgba(142, 142, 147, 0.5);
+    border-radius: 4px;
+    min-height: 30px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: rgba(142, 142, 147, 0.7);
+}
+
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical {
+    background: none;
+}
+
+QScrollBar:horizontal {
+    background-color: transparent;
+    height: 8px;
+    margin: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: rgba(142, 142, 147, 0.5);
+    border-radius: 4px;
+    min-width: 30px;
+}
+
+QScrollBar::handle:horizontal:hover {
+    background-color: rgba(142, 142, 147, 0.7);
+}
+
+/* Group Boxes - iOS card style */
+QGroupBox {
+    background-color: white;
+    border: none;
+    border-radius: 12px;
+    margin-top: 18px;
+    padding: 16px;
+    font-size: 16pt;
+    font-weight: 600;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 4px 0px;
+    color: #8E8E93;
+    background-color: transparent;
+    text-transform: uppercase;
+    font-size: 11pt;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+/* Bottom Navigation Bar (iOS Tab Bar style) */
+QWidget#bottomNavBar {
+    background-color: rgba(242, 242, 247, 0.95);
+    border-top: 0.5px solid #C7C7CC;
+}
+
+QPushButton#navButton {
+    background-color: transparent;
+    color: #8E8E93;
+    border: none;
+    padding: 8px;
+    font-size: 10pt;
+    min-height: 49px;
+}
+
+QPushButton#navButton:pressed {
+    color: #007AFF;
+}
+
+/* Status Bar - iOS style */
+QStatusBar {
+    background-color: white;
+    color: #000000;
+    font-size: 13pt;
+    border-top: 0.5px solid #C7C7CC;
+}
+
+/* Dialogs - iOS style */
+QDialog {
+    background-color: #F2F2F7;
+    border-radius: 12px;
+}
+
+/* Floating Action Buttons - iOS style */
+QPushButton#fab {
+    border-radius: 28px;
+    min-width: 56px;
+    min-height: 56px;
+    max-width: 56px;
+    max-height: 56px;
+    font-weight: 600;
+    font-size: 12pt;
+    border: none;
+    /* Shadow effect for iOS FAB */
+    padding: 0;
+}

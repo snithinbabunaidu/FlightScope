@@ -1,0 +1,253 @@
+/* FlightScope Mobile UI Theme (Phone) */
+
+/* ========================================
+   COLOR PALETTE:
+   Primary Dark: #3B1E54
+   Primary Medium: #9B7EBD
+   Primary Light: #D4BEE4
+   Neutral/Background: #EEEEEE
+   --- Accent Colors ---
+   Green: #4CAF50
+   Red: #F44336
+   Blue: #2196F3
+   Orange: #FFC107
+   Grey: #9E9E9E
+   ======================================== */
+
+/* Global Styles - Larger fonts and touch targets for mobile */
+QWidget {
+    background-color: #EEEEEE;
+    font-family: "Roboto", "Segoe UI", sans-serif;
+    font-size: 14pt;  /* Larger font for mobile */
+}
+
+QMainWindow {
+    background-color: #EEEEEE;
+}
+
+/* Bottom Navigation Bar */
+QWidget#bottomNavBar {
+    background-color: #3B1E54;
+    border-top: 2px solid #9B7EBD;
+}
+
+QPushButton#navButton {
+    background-color: transparent;
+    color: white;
+    border: none;
+    padding: 12px;
+    font-size: 13pt;
+    font-weight: 500;
+    min-height: 60px;
+}
+
+QPushButton#navButton:pressed {
+    background-color: #9B7EBD;
+}
+
+/* Buttons - Touch-optimized (minimum 44pt touch targets) */
+QPushButton {
+    background-color: #9B7EBD;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 16px 24px;
+    font-weight: 500;
+    font-size: 14pt;
+    min-height: 48px;  /* iOS HIG minimum touch target */
+    min-width: 88px;
+}
+
+QPushButton:hover {
+    background-color: #8A6DAC;
+}
+
+QPushButton:pressed {
+    background-color: #D4BEE4;
+    color: #3B1E54;
+}
+
+QPushButton:disabled {
+    background-color: #CCCCCC;
+    color: #999999;
+}
+
+/* Connect button */
+QPushButton#connectButton {
+    background-color: #4CAF50;
+    min-height: 52px;
+    padding: 18px 28px;
+    font-size: 15pt;
+}
+QPushButton#connectButton:hover { background-color: #45A049; }
+QPushButton#connectButton:pressed { background-color: #66BB6A; }
+
+/* Disconnect button */
+QPushButton#disconnectButton {
+    background-color: #F44336;
+    min-height: 52px;
+    padding: 18px 28px;
+}
+QPushButton#disconnectButton:hover { background-color: #E53935; }
+QPushButton#disconnectButton:pressed { background-color: #EF5350; }
+
+/* Flight Control Buttons - Larger for touch */
+QPushButton#armButton {
+    background-color: #4CAF50;
+    min-height: 52px;
+    font-size: 15pt;
+}
+QPushButton#armButton:hover { background-color: #45A049; }
+QPushButton#armButton:pressed { background-color: #66BB6A; }
+
+QPushButton#disarmButton {
+    background-color: #F44336;
+    min-height: 52px;
+}
+QPushButton#disarmButton:hover { background-color: #E53935; }
+QPushButton#disarmButton:pressed { background-color: #EF5350; }
+
+QPushButton#rtlButton {
+    background-color: #FF9800;
+    min-height: 52px;
+}
+QPushButton#rtlButton:hover { background-color: #FB8C00; }
+QPushButton#rtlButton:pressed { background-color: #FFB74D; }
+
+QPushButton#landButton {
+    background-color: #F44336;
+    min-height: 52px;
+}
+QPushButton#landButton:hover { background-color: #E53935; }
+
+QPushButton#takeoffButton {
+    background-color: #2196F3;
+    min-height: 52px;
+}
+QPushButton#takeoffButton:hover { background-color: #1E88E5; }
+
+/* Input Fields - Larger for mobile */
+QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    background-color: white;
+    border: 2px solid #D4BEE4;
+    border-radius: 8px;
+    padding: 14px;  /* Larger padding for touch */
+    font-size: 14pt;
+    min-height: 48px;
+}
+
+QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
+    border: 2px solid #9B7EBD;
+}
+
+/* Labels - Larger text */
+QLabel {
+    color: #333333;
+    font-size: 13pt;
+    padding: 6px;
+}
+
+/* Table Widget - Touch-friendly */
+QTableWidget {
+    background-color: white;
+    border: 1px solid #D4BEE4;
+    border-radius: 8px;
+    gridline-color: #E0E0E0;
+}
+
+QTableWidget::item {
+    padding: 16px;  /* Larger cells for touch */
+    border: none;
+    min-height: 52px;
+}
+
+QTableWidget::item:selected {
+    background-color: #D4BEE4;
+    color: #3B1E54;
+}
+
+QHeaderView::section {
+    background-color: #3B1E54;
+    color: white;
+    padding: 14px;
+    border: none;
+    font-weight: bold;
+    font-size: 13pt;
+    min-height: 48px;
+}
+
+/* Scroll Bars - Wider for touch */
+QScrollBar:vertical {
+    background-color: #F5F5F5;
+    width: 16px;  /* Wider scroll bar */
+    border-radius: 8px;
+    margin: 0;
+}
+
+QScrollBar::handle:vertical {
+    background-color: #9B7EBD;
+    border-radius: 8px;
+    min-height: 40px;
+}
+
+QScrollBar::handle:vertical:hover {
+    background-color: #8A6DAC;
+}
+
+QScrollBar:horizontal {
+    background-color: #F5F5F5;
+    height: 16px;
+    border-radius: 8px;
+    margin: 0;
+}
+
+QScrollBar::handle:horizontal {
+    background-color: #9B7EBD;
+    border-radius: 8px;
+    min-width: 40px;
+}
+
+/* Group Boxes */
+QGroupBox {
+    background-color: white;
+    border: 2px solid #D4BEE4;
+    border-radius: 10px;
+    margin-top: 24px;
+    padding: 18px;
+    font-size: 14pt;
+    font-weight: bold;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top left;
+    padding: 4px 12px;
+    background-color: #9B7EBD;
+    color: white;
+    border-radius: 6px;
+}
+
+/* Status Bar - Hide on mobile, shown in overlay */
+QStatusBar {
+    background-color: #3B1E54;
+    color: white;
+    font-size: 12pt;
+    padding: 8px;
+}
+
+/* Dialogs - Full screen on mobile */
+QDialog {
+    background-color: #EEEEEE;
+}
+
+/* Floating Action Buttons (defined inline in C++) */
+QPushButton#fab {
+    border-radius: 28px;
+    min-width: 56px;
+    min-height: 56px;
+    max-width: 56px;
+    max-height: 56px;
+    font-weight: bold;
+    font-size: 11pt;
+    border: none;
+}
